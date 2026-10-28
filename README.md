@@ -74,6 +74,8 @@ Session processing takes place locally. The event transport intentionally omits 
 
 The optional Windows startup update check contacts the official website for version metadata. It does not upload session contents and does not download or execute updates. The web host can still see ordinary HTTP connection information. There is no account requirement for the app. See [SECURITY.md](SECURITY.md).
 
-## Contributing and license
+## Contribution policy and license
 
-Read [CONTRIBUTING.md](CONTRIBUTING.md) before submitting changes. Commit messages must be in English. Code and project documentation are licensed under [Apache License 2.0](LICENSE); preserve [NOTICE](NOTICE) and the separate [third-party notices](THIRD_PARTY_NOTICES.md). The license does not grant trademark rights. Product names of other vendors are used only to describe integrations; no affiliation or endorsement is implied.
+This repository is a public source publication maintained by its owner. **External code contributions are not accepted, and pull requests are disabled.** You can read, download and use the source under its license; changes to this repository are maintained by the owner. See [the contribution policy](CONTRIBUTING.md). Maintainer commit messages must be in English.
+
+Code and project documentation are licensed under [Apache License 2.0](LICENSE); preserve [NOTICE](NOTICE) and the separate [third-party notices](THIRD_PARTY_NOTICES.md). Disabling pull requests does not restrict the rights granted by that license. The license does not grant trademark rights. Product names of other vendors are used only to describe integrations; no affiliation or endorsement is implied.

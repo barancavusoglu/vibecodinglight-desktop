@@ -1,9 +1,10 @@
-# Contributing
+# Contribution policy
 
-Thank you for helping improve VibeCodingLight Desktop.
+This is a public source publication maintained by the repository owner. External code contributions are not accepted, and GitHub pull requests are disabled. Reading, downloading, modifying and redistributing the source remain governed by [Apache-2.0](LICENSE); this policy only controls contributions to this repository.
 
-- Open an issue describing the concrete problem before a substantial redesign.
-- Use English for commit messages, pull request titles and descriptions. Keep changes focused; use imperative subjects such as `Fix card alignment on narrow windows`.
+The following guidelines apply to maintenance by the owner:
+
+- Use English for commit messages and public maintenance documentation. Keep changes focused; use imperative subjects such as `Fix card alignment on narrow windows`.
 - Build instructions are in [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md). Run the tests appropriate to your change and describe exactly what was checked.
 - Preserve user-owned hook/plugin settings, backups, consent and assistant trust decisions. Never enable an integration as a side effect of a test.
 - Check Codex CLI/Desktop, Claude Code CLI/Desktop Code and OpenCode applicability for changes to session tracking, lifecycle events or transport. Explain exclusions instead of assuming parity.
@@ -13,4 +14,4 @@ Thank you for helping improve VibeCodingLight Desktop.
 - No firmware requirement should be added for a desktop-only fix without an explicit compatibility decision.
 - Update third-party notices and license materials when dependencies change. Do not commit binaries, personal settings, private keys or signing credentials.
 
-By intentionally submitting a contribution, you agree to license it under Apache-2.0, as described by section 5 of [LICENSE](LICENSE). No separate CLA is currently required. Submit only material you have the right to contribute.
+For private vulnerability reports, follow [SECURITY.md](SECURITY.md). Do not submit sensitive data in public issues.
