@@ -87,8 +87,13 @@ var input = """{"session_id":"s","hook_event_name":"PreToolUse","tool_name":"Ask
 var parsed = EventReader.Read("claude", input);
 Check(parsed.Project == "Proje adı" && StateEngine.IsQuestion(parsed.ToolName), "Privacy-minimal event normalization");
 Check(!System.Text.Json.JsonSerializer.Serialize(parsed).Contains("secret"), "No prompt/tool arguments forwarded");
-string transcriptJson = """{"session_id":"s","hook_event_name":"SessionStart","transcript_path":"C:\\Users\\Someone\\.codex\\sessions\\2026\\09\\16\\rollout.jsonl","cwd":"C:\\Demo"}""";
-Check(EventReader.Read("codex", transcriptJson).MonitorRoot.EndsWith(@".codex\sessions", StringComparison.OrdinalIgnoreCase), "Codex hook supplies the exact sessions root without transcript content");
+string expectedSessionsRoot = Path.Combine(Path.GetTempPath(), "vibecodinglight-codex-fixture", "sessions");
+string transcriptJson = System.Text.Json.JsonSerializer.Serialize(new {
+    session_id = "s", hook_event_name = "SessionStart",
+    transcript_path = Path.Combine(expectedSessionsRoot, "2026", "09", "16", "rollout.jsonl"),
+    cwd = Path.GetTempPath()
+});
+Check(EventReader.Read("codex", transcriptJson).MonitorRoot == Path.GetFullPath(expectedSessionsRoot), "Codex hook supplies the exact sessions root without transcript content");
 string cmd = "\"C:\\Users\\Test User\\AI Light.exe\" --hook codex";
 string original = """{"theme":"dark","hooks":{"PreToolUse":[{"matcher":"Bash","hooks":[{"type":"command","command":"user-tool"}]}]}}""";
 string once = HookConfig.Edit(original, cmd, [], "codex", true);
