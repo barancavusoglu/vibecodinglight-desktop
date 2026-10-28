@@ -52,4 +52,4 @@ v1 firmware AI/harness adı bilmez. Kırmızı/yeşil/sönük önceliği PC'dedi
 - Komut onayları USB'de 700 ms, BLE'de 1500 ms ile sınırlıdır; BLE kurulum denemesi 3500 ms. İşletim sisteminin alttaki radyo işlemleri daha uzun sürebilir. Yerel zaman aşımı sonrası bağlantı bırakılıp yeniden denenir.
 - Windows: yerel WinRT GATT. macOS: paket içindeki Swift CoreBluetooth yardımcısı; sistem Bluetooth izni gerekir. USB doğrulanmışsa masaüstü BLE taraması durur; Mac yardımcısı yalnız USB bulunamadığında başlatılır, USB kullanımında Bluetooth izni gereksiz yere istenmez. İki platform ortak `RobotConnection` ve komut/yanıt doğrulamasını kullanır. Python, Node veya harici BLE servisi son kullanıcı bağımlılığı değildir.
 
-Derleme ve otomatik kontroller fiziksel USB/BLE testinin yerine geçmez. Test adımları: [USB-BLE-TEST.md](../projects/arduino/USB-BLE-TEST.md).
+Derleme ve otomatik kontroller fiziksel USB/BLE testinin yerine geçmez. Test adımları: [Hardware validation](HARDWARE-VALIDATION.md).
