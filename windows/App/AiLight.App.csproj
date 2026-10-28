@@ -1,0 +1,8 @@
+<Project Sdk="Microsoft.NET.Sdk">
+ <PropertyGroup><OutputType>WinExe</OutputType><TargetFramework>net10.0-windows10.0.19041.0</TargetFramework><UseWPF>true</UseWPF><UseWindowsForms>true</UseWindowsForms><AssemblyName>AI Light</AssemblyName><StartupObject>AiLight.App.Program</StartupObject><ApplicationManifest>app.manifest</ApplicationManifest><ApplicationIcon>Assets/VibeCodingLight.ico</ApplicationIcon><PublishSingleFile>true</PublishSingleFile><SelfContained>true</SelfContained><RuntimeIdentifier>win-x64</RuntimeIdentifier><IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract></PropertyGroup>
+ <PropertyGroup><EnableCompressionInSingleFile>true</EnableCompressionInSingleFile><Product>VibeCodingLight</Product><Title>VibeCodingLight</Title><Company>VibeCodingLight</Company></PropertyGroup>
+ <ItemGroup><ProjectReference Include="../Core/AiLight.Core.csproj"/><PackageReference Include="System.IO.Ports" Version="10.0.0"/></ItemGroup>
+ <ItemGroup><EmbeddedResource Include="opencode-plugin.js" LogicalName="AiLight.OpenCodePlugin"/></ItemGroup>
+ <ItemGroup><Resource Include="Assets/VibeCodingLight.ico"/></ItemGroup>
+ <ItemGroup><Compile Include="../../shared/SerialRobotLink.cs" Link="Transport/SerialRobotLink.cs"/></ItemGroup>
+</Project>

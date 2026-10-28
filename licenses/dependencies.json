@@ -1,0 +1,542 @@
+[
+  {
+    "id": "Avalonia.Angle.Windows.Natives",
+    "version": "2.1.25547.20250602",
+    "license": "LICENSE",
+    "authors": "Avalonia Team",
+    "copyright": "Copyright 2013-2025 © The AvaloniaUI Project",
+    "repository": "https://github.com/AvaloniaUI/angle/",
+    "commit": "cb8b4e1307a9d8f5ff56b8c5973bea4158ffead8",
+    "noticeFiles": [
+      "licenses/notices/54aff7276217df9f-LICENSE"
+    ]
+  },
+  {
+    "id": "Avalonia.BuildServices",
+    "version": "11.3.2",
+    "license": "MIT",
+    "authors": "Avalonia Team",
+    "copyright": "Copyright 2023-2025 © The AvaloniaUI Project",
+    "repository": "https://github.com/AvaloniaUI/Avalonia.BuildServices",
+    "commit": "777f975b0a0cecf0311273711d56697212c558c0",
+    "noticeFiles": []
+  },
+  {
+    "id": "Avalonia.Desktop",
+    "version": "11.3.9",
+    "license": "MIT",
+    "authors": "Avalonia Team",
+    "copyright": "Copyright 2013-2025 © The AvaloniaUI Project",
+    "repository": "https://github.com/AvaloniaUI/Avalonia/",
+    "commit": "4e302560fc9f84de1fe64360e29165574cf2ea65",
+    "noticeFiles": []
+  },
+  {
+    "id": "Avalonia.FreeDesktop",
+    "version": "11.3.9",
+    "license": "MIT",
+    "authors": "Avalonia Team",
+    "copyright": "Copyright 2013-2025 © The AvaloniaUI Project",
+    "repository": "https://github.com/AvaloniaUI/Avalonia/",
+    "commit": "4e302560fc9f84de1fe64360e29165574cf2ea65",
+    "noticeFiles": []
+  },
+  {
+    "id": "Avalonia.Native",
+    "version": "11.3.9",
+    "license": "MIT",
+    "authors": "Avalonia Team",
+    "copyright": "Copyright 2013-2025 © The AvaloniaUI Project",
+    "repository": "https://github.com/AvaloniaUI/Avalonia/",
+    "commit": "4e302560fc9f84de1fe64360e29165574cf2ea65",
+    "noticeFiles": []
+  },
+  {
+    "id": "Avalonia.Remote.Protocol",
+    "version": "11.3.9",
+    "license": "MIT",
+    "authors": "Avalonia Team",
+    "copyright": "Copyright 2013-2025 © The AvaloniaUI Project",
+    "repository": "https://github.com/AvaloniaUI/Avalonia/",
+    "commit": "4e302560fc9f84de1fe64360e29165574cf2ea65",
+    "noticeFiles": []
+  },
+  {
+    "id": "Avalonia.Skia",
+    "version": "11.3.9",
+    "license": "MIT",
+    "authors": "Avalonia Team",
+    "copyright": "Copyright 2013-2025 © The AvaloniaUI Project",
+    "repository": "https://github.com/AvaloniaUI/Avalonia/",
+    "commit": "4e302560fc9f84de1fe64360e29165574cf2ea65",
+    "noticeFiles": []
+  },
+  {
+    "id": "Avalonia.Themes.Fluent",
+    "version": "11.3.9",
+    "license": "MIT",
+    "authors": "Avalonia Team",
+    "copyright": "Copyright 2013-2025 © The AvaloniaUI Project",
+    "repository": "https://github.com/AvaloniaUI/Avalonia/",
+    "commit": "4e302560fc9f84de1fe64360e29165574cf2ea65",
+    "noticeFiles": []
+  },
+  {
+    "id": "Avalonia.Win32",
+    "version": "11.3.9",
+    "license": "MIT",
+    "authors": "Avalonia Team",
+    "copyright": "Copyright 2013-2025 © The AvaloniaUI Project",
+    "repository": "https://github.com/AvaloniaUI/Avalonia/",
+    "commit": "4e302560fc9f84de1fe64360e29165574cf2ea65",
+    "noticeFiles": []
+  },
+  {
+    "id": "Avalonia.X11",
+    "version": "11.3.9",
+    "license": "MIT",
+    "authors": "Avalonia Team",
+    "copyright": "Copyright 2013-2025 © The AvaloniaUI Project",
+    "repository": "https://github.com/AvaloniaUI/Avalonia/",
+    "commit": "4e302560fc9f84de1fe64360e29165574cf2ea65",
+    "noticeFiles": []
+  },
+  {
+    "id": "Avalonia",
+    "version": "11.3.9",
+    "license": "MIT",
+    "authors": "Avalonia Team",
+    "copyright": "Copyright 2013-2025 © The AvaloniaUI Project",
+    "repository": "https://github.com/AvaloniaUI/Avalonia/",
+    "commit": "4e302560fc9f84de1fe64360e29165574cf2ea65",
+    "noticeFiles": []
+  },
+  {
+    "id": "HarfBuzzSharp.NativeAssets.Linux",
+    "version": "8.3.1.1",
+    "license": "MIT",
+    "authors": "Microsoft",
+    "copyright": "© Microsoft Corporation. All rights reserved.",
+    "repository": "https://go.microsoft.com/fwlink/?linkid=868515",
+    "commit": "64f24b1cddb68d30ec0ac6b661964178fc21d5ec",
+    "noticeFiles": [
+      "licenses/notices/89101e35a8c66fd4-LICENSE.txt",
+      "licenses/notices/21504c46c4c58aa6-THIRD-PARTY-NOTICES.txt"
+    ]
+  },
+  {
+    "id": "HarfBuzzSharp.NativeAssets.macOS",
+    "version": "8.3.1.1",
+    "license": "MIT",
+    "authors": "Microsoft",
+    "copyright": "© Microsoft Corporation. All rights reserved.",
+    "repository": "https://go.microsoft.com/fwlink/?linkid=868515",
+    "commit": "64f24b1cddb68d30ec0ac6b661964178fc21d5ec",
+    "noticeFiles": [
+      "licenses/notices/89101e35a8c66fd4-LICENSE.txt",
+      "licenses/notices/21504c46c4c58aa6-THIRD-PARTY-NOTICES.txt"
+    ]
+  },
+  {
+    "id": "HarfBuzzSharp.NativeAssets.WebAssembly",
+    "version": "8.3.1.1",
+    "license": "MIT",
+    "authors": "Microsoft",
+    "copyright": "© Microsoft Corporation. All rights reserved.",
+    "repository": "https://go.microsoft.com/fwlink/?linkid=868515",
+    "commit": "64f24b1cddb68d30ec0ac6b661964178fc21d5ec",
+    "noticeFiles": [
+      "licenses/notices/89101e35a8c66fd4-LICENSE.txt",
+      "licenses/notices/21504c46c4c58aa6-THIRD-PARTY-NOTICES.txt"
+    ]
+  },
+  {
+    "id": "HarfBuzzSharp.NativeAssets.Win32",
+    "version": "8.3.1.1",
+    "license": "MIT",
+    "authors": "Microsoft",
+    "copyright": "© Microsoft Corporation. All rights reserved.",
+    "repository": "https://go.microsoft.com/fwlink/?linkid=868515",
+    "commit": "64f24b1cddb68d30ec0ac6b661964178fc21d5ec",
+    "noticeFiles": [
+      "licenses/notices/89101e35a8c66fd4-LICENSE.txt",
+      "licenses/notices/21504c46c4c58aa6-THIRD-PARTY-NOTICES.txt"
+    ]
+  },
+  {
+    "id": "HarfBuzzSharp",
+    "version": "8.3.1.1",
+    "license": "MIT",
+    "authors": "Microsoft",
+    "copyright": "© Microsoft Corporation. All rights reserved.",
+    "repository": "https://go.microsoft.com/fwlink/?linkid=868515",
+    "commit": "64f24b1cddb68d30ec0ac6b661964178fc21d5ec",
+    "noticeFiles": [
+      "licenses/notices/89101e35a8c66fd4-LICENSE.txt"
+    ]
+  },
+  {
+    "id": "MicroCom.Runtime",
+    "version": "0.11.0",
+    "license": "MIT",
+    "authors": "MicroCom.Runtime",
+    "copyright": "Copyright 2021 © Nikita Tsukanov",
+    "repository": "https://github.com/kekekeks/MicroCom",
+    "commit": "",
+    "noticeFiles": []
+  },
+  {
+    "id": "Microsoft.NET.ILLink.Tasks",
+    "version": "10.0.11",
+    "license": "MIT",
+    "authors": "Microsoft",
+    "copyright": "© Microsoft Corporation. All rights reserved.",
+    "repository": "https://github.com/dotnet/dotnet",
+    "commit": "e2f47b0110ed922f21a1522da67279133ce28f32",
+    "noticeFiles": [
+      "licenses/notices/6d15e10a101c6bff-THIRD-PARTY-NOTICES.TXT"
+    ]
+  },
+  {
+    "id": "Microsoft.NETCore.App.Runtime.osx-arm64",
+    "version": "10.0.11",
+    "license": "MIT",
+    "authors": "Microsoft",
+    "copyright": "© Microsoft Corporation. All rights reserved.",
+    "repository": "https://github.com/dotnet/dotnet",
+    "commit": "e2f47b0110ed922f21a1522da67279133ce28f32",
+    "noticeFiles": [
+      "licenses/notices/cfc21f5e8bd655ae-LICENSE.TXT",
+      "licenses/notices/66f1d4e449731855-THIRD-PARTY-NOTICES.TXT"
+    ]
+  },
+  {
+    "id": "Microsoft.NETCore.App.Runtime.osx-x64",
+    "version": "10.0.11",
+    "license": "MIT",
+    "authors": "Microsoft",
+    "copyright": "© Microsoft Corporation. All rights reserved.",
+    "repository": "https://github.com/dotnet/dotnet",
+    "commit": "e2f47b0110ed922f21a1522da67279133ce28f32",
+    "noticeFiles": [
+      "licenses/notices/cfc21f5e8bd655ae-LICENSE.TXT",
+      "licenses/notices/66f1d4e449731855-THIRD-PARTY-NOTICES.TXT"
+    ]
+  },
+  {
+    "id": "Microsoft.NETCore.App.Runtime.win-x64",
+    "version": "10.0.11",
+    "license": "MIT",
+    "authors": "Microsoft",
+    "copyright": "© Microsoft Corporation. All rights reserved.",
+    "repository": "https://github.com/dotnet/dotnet",
+    "commit": "e2f47b0110ed922f21a1522da67279133ce28f32",
+    "noticeFiles": [
+      "licenses/notices/d7a68596ab69b06f-LICENSE.TXT",
+      "licenses/notices/6d15e10a101c6bff-THIRD-PARTY-NOTICES.TXT"
+    ]
+  },
+  {
+    "id": "Microsoft.WindowsDesktop.App.Runtime.win-x64",
+    "version": "10.0.11",
+    "license": "MIT",
+    "authors": "Microsoft",
+    "copyright": "© Microsoft Corporation. All rights reserved.",
+    "repository": "https://github.com/dotnet/dotnet",
+    "commit": "e2f47b0110ed922f21a1522da67279133ce28f32",
+    "noticeFiles": [
+      "licenses/notices/a89886665765362e-LICENSE"
+    ]
+  },
+  {
+    "id": "runtime.android-arm.runtime.native.System.IO.Ports",
+    "version": "10.0.0",
+    "license": "MIT",
+    "authors": "Microsoft",
+    "copyright": "© Microsoft Corporation. All rights reserved.",
+    "repository": "https://github.com/dotnet/dotnet",
+    "commit": "b0f34d51fccc69fd334253924abd8d6853fad7aa",
+    "noticeFiles": [
+      "licenses/notices/66f1d4e449731855-THIRD-PARTY-NOTICES.TXT"
+    ]
+  },
+  {
+    "id": "runtime.android-arm64.runtime.native.System.IO.Ports",
+    "version": "10.0.0",
+    "license": "MIT",
+    "authors": "Microsoft",
+    "copyright": "© Microsoft Corporation. All rights reserved.",
+    "repository": "https://github.com/dotnet/dotnet",
+    "commit": "b0f34d51fccc69fd334253924abd8d6853fad7aa",
+    "noticeFiles": [
+      "licenses/notices/66f1d4e449731855-THIRD-PARTY-NOTICES.TXT"
+    ]
+  },
+  {
+    "id": "runtime.android-x64.runtime.native.System.IO.Ports",
+    "version": "10.0.0",
+    "license": "MIT",
+    "authors": "Microsoft",
+    "copyright": "© Microsoft Corporation. All rights reserved.",
+    "repository": "https://github.com/dotnet/dotnet",
+    "commit": "b0f34d51fccc69fd334253924abd8d6853fad7aa",
+    "noticeFiles": [
+      "licenses/notices/66f1d4e449731855-THIRD-PARTY-NOTICES.TXT"
+    ]
+  },
+  {
+    "id": "runtime.android-x86.runtime.native.System.IO.Ports",
+    "version": "10.0.0",
+    "license": "MIT",
+    "authors": "Microsoft",
+    "copyright": "© Microsoft Corporation. All rights reserved.",
+    "repository": "https://github.com/dotnet/dotnet",
+    "commit": "b0f34d51fccc69fd334253924abd8d6853fad7aa",
+    "noticeFiles": [
+      "licenses/notices/66f1d4e449731855-THIRD-PARTY-NOTICES.TXT"
+    ]
+  },
+  {
+    "id": "runtime.linux-arm.runtime.native.System.IO.Ports",
+    "version": "10.0.0",
+    "license": "MIT",
+    "authors": "Microsoft",
+    "copyright": "© Microsoft Corporation. All rights reserved.",
+    "repository": "https://github.com/dotnet/dotnet",
+    "commit": "b0f34d51fccc69fd334253924abd8d6853fad7aa",
+    "noticeFiles": [
+      "licenses/notices/66f1d4e449731855-THIRD-PARTY-NOTICES.TXT"
+    ]
+  },
+  {
+    "id": "runtime.linux-arm64.runtime.native.System.IO.Ports",
+    "version": "10.0.0",
+    "license": "MIT",
+    "authors": "Microsoft",
+    "copyright": "© Microsoft Corporation. All rights reserved.",
+    "repository": "https://github.com/dotnet/dotnet",
+    "commit": "b0f34d51fccc69fd334253924abd8d6853fad7aa",
+    "noticeFiles": [
+      "licenses/notices/66f1d4e449731855-THIRD-PARTY-NOTICES.TXT"
+    ]
+  },
+  {
+    "id": "runtime.linux-bionic-arm64.runtime.native.System.IO.Ports",
+    "version": "10.0.0",
+    "license": "MIT",
+    "authors": "Microsoft",
+    "copyright": "© Microsoft Corporation. All rights reserved.",
+    "repository": "https://github.com/dotnet/dotnet",
+    "commit": "b0f34d51fccc69fd334253924abd8d6853fad7aa",
+    "noticeFiles": [
+      "licenses/notices/66f1d4e449731855-THIRD-PARTY-NOTICES.TXT"
+    ]
+  },
+  {
+    "id": "runtime.linux-bionic-x64.runtime.native.System.IO.Ports",
+    "version": "10.0.0",
+    "license": "MIT",
+    "authors": "Microsoft",
+    "copyright": "© Microsoft Corporation. All rights reserved.",
+    "repository": "https://github.com/dotnet/dotnet",
+    "commit": "b0f34d51fccc69fd334253924abd8d6853fad7aa",
+    "noticeFiles": [
+      "licenses/notices/66f1d4e449731855-THIRD-PARTY-NOTICES.TXT"
+    ]
+  },
+  {
+    "id": "runtime.linux-musl-arm.runtime.native.System.IO.Ports",
+    "version": "10.0.0",
+    "license": "MIT",
+    "authors": "Microsoft",
+    "copyright": "© Microsoft Corporation. All rights reserved.",
+    "repository": "https://github.com/dotnet/dotnet",
+    "commit": "b0f34d51fccc69fd334253924abd8d6853fad7aa",
+    "noticeFiles": [
+      "licenses/notices/66f1d4e449731855-THIRD-PARTY-NOTICES.TXT"
+    ]
+  },
+  {
+    "id": "runtime.linux-musl-arm64.runtime.native.System.IO.Ports",
+    "version": "10.0.0",
+    "license": "MIT",
+    "authors": "Microsoft",
+    "copyright": "© Microsoft Corporation. All rights reserved.",
+    "repository": "https://github.com/dotnet/dotnet",
+    "commit": "b0f34d51fccc69fd334253924abd8d6853fad7aa",
+    "noticeFiles": [
+      "licenses/notices/66f1d4e449731855-THIRD-PARTY-NOTICES.TXT"
+    ]
+  },
+  {
+    "id": "runtime.linux-musl-x64.runtime.native.System.IO.Ports",
+    "version": "10.0.0",
+    "license": "MIT",
+    "authors": "Microsoft",
+    "copyright": "© Microsoft Corporation. All rights reserved.",
+    "repository": "https://github.com/dotnet/dotnet",
+    "commit": "b0f34d51fccc69fd334253924abd8d6853fad7aa",
+    "noticeFiles": [
+      "licenses/notices/66f1d4e449731855-THIRD-PARTY-NOTICES.TXT"
+    ]
+  },
+  {
+    "id": "runtime.linux-x64.runtime.native.System.IO.Ports",
+    "version": "10.0.0",
+    "license": "MIT",
+    "authors": "Microsoft",
+    "copyright": "© Microsoft Corporation. All rights reserved.",
+    "repository": "https://github.com/dotnet/dotnet",
+    "commit": "b0f34d51fccc69fd334253924abd8d6853fad7aa",
+    "noticeFiles": [
+      "licenses/notices/66f1d4e449731855-THIRD-PARTY-NOTICES.TXT"
+    ]
+  },
+  {
+    "id": "runtime.maccatalyst-arm64.runtime.native.System.IO.Ports",
+    "version": "10.0.0",
+    "license": "MIT",
+    "authors": "Microsoft",
+    "copyright": "© Microsoft Corporation. All rights reserved.",
+    "repository": "https://github.com/dotnet/dotnet",
+    "commit": "b0f34d51fccc69fd334253924abd8d6853fad7aa",
+    "noticeFiles": [
+      "licenses/notices/66f1d4e449731855-THIRD-PARTY-NOTICES.TXT"
+    ]
+  },
+  {
+    "id": "runtime.maccatalyst-x64.runtime.native.System.IO.Ports",
+    "version": "10.0.0",
+    "license": "MIT",
+    "authors": "Microsoft",
+    "copyright": "© Microsoft Corporation. All rights reserved.",
+    "repository": "https://github.com/dotnet/dotnet",
+    "commit": "b0f34d51fccc69fd334253924abd8d6853fad7aa",
+    "noticeFiles": [
+      "licenses/notices/66f1d4e449731855-THIRD-PARTY-NOTICES.TXT"
+    ]
+  },
+  {
+    "id": "runtime.native.System.IO.Ports",
+    "version": "10.0.0",
+    "license": "MIT",
+    "authors": "Microsoft",
+    "copyright": "© Microsoft Corporation. All rights reserved.",
+    "repository": "https://github.com/dotnet/dotnet",
+    "commit": "b0f34d51fccc69fd334253924abd8d6853fad7aa",
+    "noticeFiles": [
+      "licenses/notices/6d15e10a101c6bff-THIRD-PARTY-NOTICES.TXT"
+    ]
+  },
+  {
+    "id": "runtime.osx-arm64.runtime.native.System.IO.Ports",
+    "version": "10.0.0",
+    "license": "MIT",
+    "authors": "Microsoft",
+    "copyright": "© Microsoft Corporation. All rights reserved.",
+    "repository": "https://github.com/dotnet/dotnet",
+    "commit": "b0f34d51fccc69fd334253924abd8d6853fad7aa",
+    "noticeFiles": [
+      "licenses/notices/66f1d4e449731855-THIRD-PARTY-NOTICES.TXT"
+    ]
+  },
+  {
+    "id": "runtime.osx-x64.runtime.native.System.IO.Ports",
+    "version": "10.0.0",
+    "license": "MIT",
+    "authors": "Microsoft",
+    "copyright": "© Microsoft Corporation. All rights reserved.",
+    "repository": "https://github.com/dotnet/dotnet",
+    "commit": "b0f34d51fccc69fd334253924abd8d6853fad7aa",
+    "noticeFiles": [
+      "licenses/notices/66f1d4e449731855-THIRD-PARTY-NOTICES.TXT"
+    ]
+  },
+  {
+    "id": "SkiaSharp.NativeAssets.Linux",
+    "version": "2.88.9",
+    "license": "MIT",
+    "authors": "Microsoft",
+    "copyright": "© Microsoft Corporation. All rights reserved.",
+    "repository": "https://github.com/mono/SkiaSharp",
+    "commit": "9699cdf046a989423a5e5eca68e7fd813486d81c",
+    "noticeFiles": [
+      "licenses/notices/89101e35a8c66fd4-LICENSE.txt",
+      "licenses/notices/21504c46c4c58aa6-THIRD-PARTY-NOTICES.txt"
+    ]
+  },
+  {
+    "id": "SkiaSharp.NativeAssets.macOS",
+    "version": "2.88.9",
+    "license": "MIT",
+    "authors": "Microsoft",
+    "copyright": "© Microsoft Corporation. All rights reserved.",
+    "repository": "https://github.com/mono/SkiaSharp",
+    "commit": "9699cdf046a989423a5e5eca68e7fd813486d81c",
+    "noticeFiles": [
+      "licenses/notices/89101e35a8c66fd4-LICENSE.txt",
+      "licenses/notices/21504c46c4c58aa6-THIRD-PARTY-NOTICES.txt"
+    ]
+  },
+  {
+    "id": "SkiaSharp.NativeAssets.WebAssembly",
+    "version": "2.88.9",
+    "license": "MIT",
+    "authors": "Microsoft",
+    "copyright": "© Microsoft Corporation. All rights reserved.",
+    "repository": "https://github.com/mono/SkiaSharp",
+    "commit": "9699cdf046a989423a5e5eca68e7fd813486d81c",
+    "noticeFiles": [
+      "licenses/notices/89101e35a8c66fd4-LICENSE.txt",
+      "licenses/notices/21504c46c4c58aa6-THIRD-PARTY-NOTICES.txt"
+    ]
+  },
+  {
+    "id": "SkiaSharp.NativeAssets.Win32",
+    "version": "2.88.9",
+    "license": "MIT",
+    "authors": "Microsoft",
+    "copyright": "© Microsoft Corporation. All rights reserved.",
+    "repository": "https://github.com/mono/SkiaSharp",
+    "commit": "9699cdf046a989423a5e5eca68e7fd813486d81c",
+    "noticeFiles": [
+      "licenses/notices/89101e35a8c66fd4-LICENSE.txt",
+      "licenses/notices/21504c46c4c58aa6-THIRD-PARTY-NOTICES.txt"
+    ]
+  },
+  {
+    "id": "SkiaSharp",
+    "version": "2.88.9",
+    "license": "MIT",
+    "authors": "Microsoft",
+    "copyright": "© Microsoft Corporation. All rights reserved.",
+    "repository": "https://github.com/mono/SkiaSharp",
+    "commit": "9699cdf046a989423a5e5eca68e7fd813486d81c",
+    "noticeFiles": [
+      "licenses/notices/89101e35a8c66fd4-LICENSE.txt",
+      "licenses/notices/21504c46c4c58aa6-THIRD-PARTY-NOTICES.txt"
+    ]
+  },
+  {
+    "id": "System.IO.Ports",
+    "version": "10.0.0",
+    "license": "MIT",
+    "authors": "Microsoft",
+    "copyright": "© Microsoft Corporation. All rights reserved.",
+    "repository": "https://github.com/dotnet/dotnet",
+    "commit": "b0f34d51fccc69fd334253924abd8d6853fad7aa",
+    "noticeFiles": [
+      "licenses/notices/6d15e10a101c6bff-THIRD-PARTY-NOTICES.TXT"
+    ]
+  },
+  {
+    "id": "Tmds.DBus.Protocol",
+    "version": "0.21.3",
+    "license": "MIT",
+    "authors": "Tom Deseyn",
+    "copyright": "Tom Deseyn",
+    "repository": "https://github.com/tmds/Tmds.DBus.git",
+    "commit": "8cb04f66c330b64244e996ff68f685f27f7381a0",
+    "noticeFiles": []
+  }
+]

@@ -1,0 +1,92 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  DOTNET_CLI_TELEMETRY_OPTOUT: 1
+  AVALONIA_TELEMETRY_OPTOUT: 1
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  windows:
+    name: Windows build and isolated integration checks
+    runs-on: windows-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          persist-credentials: false
+      - uses: actions/setup-dotnet@26b0ec14cb23fa6904739307f278c14f94c95bf1 # v5
+        with:
+          global-json-file: global.json
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        with:
+          node-version: 24
+      - name: Restore locked dependencies
+        shell: pwsh
+        run: |
+          dotnet restore windows/Tests/AiLight.Tests.csproj --locked-mode --configfile NuGet.Config
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          dotnet restore windows/App/AiLight.App.csproj --locked-mode --configfile NuGet.Config
+          exit $LASTEXITCODE
+      - name: Build, regression tests and packaged transport checks
+        shell: pwsh
+        run: ./windows/build.ps1 -NoRestore
+      - name: Offline responsive and theme checks
+        shell: pwsh
+        run: |
+          $env:AI_LIGHT_DATA_DIR = Join-Path $PWD 'windows/dist/ci-preview-data'
+          $env:AI_LIGHT_TEST_PIPE = [guid]::NewGuid().ToString('N')
+          $exe = Join-Path $PWD 'windows/dist/portable/AI Light.exe'
+          foreach ($width in @(420, 755, 1440)) {
+            foreach ($tab in @(0, 1, 2)) {
+              $image = Join-Path $PWD "windows/dist/ci-$width-$tab.png"
+              $arguments = "--render-preview `"$image`" $tab --preview-size=${width}x900 --responsive-check --theme=night"
+              if ($tab -eq 2) { $arguments += ' --theme-check' }
+              $process = Start-Process -FilePath $exe -ArgumentList $arguments -WindowStyle Hidden -PassThru
+              if (!$process.WaitForExit(30000)) { Stop-Process -Id $process.Id; throw 'Offline preview timed out.' }
+              if ($process.ExitCode -ne 0 -or !(Test-Path -LiteralPath $image)) { throw 'Offline preview failed.' }
+            }
+          }
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: windows-development-build
+          path: |
+            windows/dist/VibeCodingLight-Setup.exe
+            windows/dist/ci-*.png
+            LICENSE
+            NOTICE
+            THIRD_PARTY_NOTICES.md
+            licenses/
+          retention-days: 14
+          if-no-files-found: error
+
+  macos:
+    name: macOS source preview checks
+    runs-on: macos-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          persist-credentials: false
+      - uses: actions/setup-dotnet@26b0ec14cb23fa6904739307f278c14f94c95bf1 # v5
+        with:
+          global-json-file: global.json
+      - name: Restore locked dependencies
+        run: |
+          dotnet restore windows/Tests/AiLight.Tests.csproj --locked-mode --configfile NuGet.Config
+          dotnet restore macos/AiLight.Mac.csproj --locked-mode --configfile NuGet.Config
+      - name: Shared regression suite
+        run: dotnet run --project windows/Tests/AiLight.Tests.csproj -c Release --no-restore
+      - name: Mac service and Swift helper checks
+        run: dotnet run --project macos/AiLight.Mac.csproj -c Release --no-restore -- --self-test

@@ -1,0 +1,25 @@
+name: Bug report
+description: Report a reproducible desktop app problem.
+body:
+  - type: markdown
+    attributes:
+      value: Do not post credentials, hook backups, real session titles, prompts, addresses or private diagnostics. Report security vulnerabilities privately using SECURITY.md.
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: App version, OS version/architecture, assistant versions, USB/Bluetooth mode and firmware version if relevant.
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Steps to reproduce
+    validations:
+      required: true
+  - type: textarea
+    id: result
+    attributes:
+      label: Expected and actual behavior
+    validations:
+      required: true

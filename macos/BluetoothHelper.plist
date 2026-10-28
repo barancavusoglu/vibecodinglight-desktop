@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0"><dict>
+ <key>CFBundleIdentifier</key><string>com.vibecodinglight.desktop.bluetooth</string>
+ <key>CFBundleName</key><string>VibeCodingLight Bluetooth</string>
+ <key>NSBluetoothAlwaysUsageDescription</key><string>VibeCodingLight robotunun ışığını Bluetooth üzerinden kontrol etmek için kullanılır.</string>
+</dict></plist>
