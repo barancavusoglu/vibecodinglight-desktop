@@ -13,9 +13,9 @@ Source publication, CI artifacts and public installers are separate milestones. 
 
 1. Run the full Windows build/tests from a clean checkout and inspect the installer version.
 2. Review current NuGet/native-runtime licenses and ship `LICENSE`, `NOTICE`, `THIRD_PARTY_NOTICES.md` and `licenses/` with the downloadable package.
-3. Sign production binaries with an appropriate trusted Windows code-signing identity. A checksum is not a publisher signature; signing does not guarantee immediate SmartScreen reputation.
+3. Sign production binaries with an appropriate trusted Windows code-signing identity, then run `pwsh -File scripts/package-windows.ps1`. See [Windows signing](WINDOWS_SIGNING.md) for provider eligibility, signing order and verification. A checksum is not a publisher signature; signing does not guarantee immediate SmartScreen reputation.
 4. Test a new installation and an upgrade from the previous version on a real Windows account, including settings and hook ownership preservation. Never publish real test-account data.
-5. Push a `windows-v...` tag matching the source version. The release workflow reruns the build, creates a complete ZIP plus SHA256, and uploads a **draft prerelease** for review. It does not install anything or publish it to users.
+5. Push a `windows-v...` tag matching the source version and add `docs/releases/windows-v<version>.md` first. The release workflow reruns the build, creates a complete `unsigned-review` ZIP plus SHA256, and uploads a **draft prerelease** for review. It does not install anything or publish it to users. Local review packaging uses `pwsh -File scripts/package-windows.ps1 -AllowUnsigned`.
 6. Verify signing, notices and package behavior, then publish the release when ready. The initial workflow builds unsigned packages; signing must be added/configured before production use. Do not label the result signed.
 
 ## macOS

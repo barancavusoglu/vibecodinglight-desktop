@@ -40,18 +40,12 @@ jobs:
       - name: Package installer and license notices
         shell: pwsh
         run: |
-          $stage = New-Item -ItemType Directory -Path release-package
-          Copy-Item windows/dist/VibeCodingLight-Setup.exe $stage
-          Copy-Item LICENSE, NOTICE, THIRD_PARTY_NOTICES.md $stage
-          Copy-Item licenses (Join-Path $stage 'licenses') -Recurse
-          $archive = "VibeCodingLight-$env:GITHUB_REF_NAME-win-x64.zip"
-          Compress-Archive -Path 'release-package/*' -DestinationPath $archive
-          $hash = (Get-FileHash -LiteralPath $archive -Algorithm SHA256).Hash.ToLowerInvariant()
-          "$hash  $archive" | Set-Content -LiteralPath "$archive.sha256" -Encoding utf8NoBOM
+          ./scripts/package-windows.ps1 -AllowUnsigned
       - name: Create draft prerelease for review
         shell: pwsh
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh release create $env:GITHUB_REF_NAME --draft --prerelease --title "Windows $env:GITHUB_REF_NAME" --generate-notes "VibeCodingLight-$env:GITHUB_REF_NAME-win-x64.zip" "VibeCodingLight-$env:GITHUB_REF_NAME-win-x64.zip.sha256"
+          $archive = "windows/dist/releases/VibeCodingLight-$env:GITHUB_REF_NAME-win-x64-unsigned-review.zip"
+          gh release create $env:GITHUB_REF_NAME --draft --prerelease --title "Windows $env:GITHUB_REF_NAME (unsigned review)" --notes-file "docs/releases/$env:GITHUB_REF_NAME.md" $archive "$archive.sha256"
           exit $LASTEXITCODE
