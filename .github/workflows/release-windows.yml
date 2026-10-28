@@ -40,12 +40,12 @@ jobs:
       - name: Package installer and license notices
         shell: pwsh
         run: |
-          ./scripts/package-windows.ps1 -AllowUnsigned
+          ./scripts/package-windows.ps1
       - name: Create draft prerelease for review
         shell: pwsh
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          $archive = "windows/dist/releases/VibeCodingLight-$env:GITHUB_REF_NAME-win-x64-unsigned-review.zip"
-          gh release create $env:GITHUB_REF_NAME --draft --prerelease --title "Windows $env:GITHUB_REF_NAME (unsigned review)" --notes-file "docs/releases/$env:GITHUB_REF_NAME.md" $archive "$archive.sha256"
+          $archive = "windows/dist/releases/VibeCodingLight-$env:GITHUB_REF_NAME-win-x64.zip"
+          gh release create $env:GITHUB_REF_NAME --draft --prerelease --title "Windows $env:GITHUB_REF_NAME" --notes 'VibeCodingLight for Windows.' $archive "$archive.sha256"
           exit $LASTEXITCODE
