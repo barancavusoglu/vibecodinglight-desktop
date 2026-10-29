@@ -225,6 +225,32 @@ public static class Program {
                     if ((string)runtime.Window.UpdateButton.Content != "İndirme sayfasını aç" || !runtime.Window.UpdateStatus.Text.Contains("Ayarların korunur"))
                         throw new Exception("Download page update UI failed");
                     runtime.Window.UpdateButton.BringIntoView();
+                    renderWindow.UpdateLayout();
+                    var outline = (System.Windows.Controls.Border)runtime.Window.UpdateButton.Template.FindName("UpdateOutline", runtime.Window.UpdateButton);
+                    if (((SolidColorBrush)outline.BorderBrush).Color != Colors.White || runtime.Window.UpdateButton.Opacity != 1)
+                        throw new Exception("Update attention must highlight only the white outline");
+                    if (SystemParameters.ClientAreaAnimation) {
+                        double minOpacity = 1, maxOpacity = 0;
+                        for (int sample = 0; sample < 12; sample++) {
+                            await Task.Delay(100);
+                            minOpacity = Math.Min(minOpacity, outline.Opacity);
+                            maxOpacity = Math.Max(maxOpacity, outline.Opacity);
+                        }
+                        if (!outline.HasAnimatedProperties || maxOpacity - minOpacity < 0.35)
+                            throw new Exception("Available update outline did not pulse");
+                    } else if (outline.HasAnimatedProperties || outline.Opacity != 1) {
+                        throw new Exception("Reduced animation setting must retain a steady white outline");
+                    }
+                    runtime.Window.UpdateButton.IsEnabled = false; renderWindow.UpdateLayout();
+                    await Task.Delay(100);
+                    if (outline.HasAnimatedProperties) throw new Exception("Disabled update button kept its animation");
+                    runtime.Window.UpdateButton.IsEnabled = true;
+                    runtime.Window.ShowUpdateResult(null); renderWindow.UpdateLayout();
+                    await Task.Delay(100);
+                    if (outline.HasAnimatedProperties || outline.Opacity != 0)
+                        throw new Exception("Current release retained update attention");
+                    runtime.Window.ShowUpdateResult(new ReleaseInfo("0.1.53"));
+                    await Task.Delay(800);
                 }
                 if (args.Contains("--update-current-test")) {
                     runtime.Window.ShowUpdateResult(null);
@@ -266,7 +292,11 @@ public static class Program {
                 using var output = File.Create(args[1]); encoder.Save(output); app.Shutdown();
             }));
         };
-        app.DispatcherUnhandledException += (_, e) => { System.Windows.MessageBox.Show(e.Exception.Message, "VibeCodingLight"); e.Handled = true; };
+        app.DispatcherUnhandledException += (_, e) => {
+            e.Handled = true;
+            if (preview) { File.WriteAllText(args[1] + ".error.txt", e.Exception.ToString()); app.Shutdown(1); }
+            else System.Windows.MessageBox.Show(e.Exception.Message, "VibeCodingLight");
+        };
         return app.Run();
     }
     private static IEnumerable<System.Windows.Controls.Button> FindThemeButtons(DependencyObject root) {

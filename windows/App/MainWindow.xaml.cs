@@ -244,6 +244,7 @@ public partial class MainWindow : Window {
         if (updateBusy) return;
         updateBusy = true; UpdateButton.IsEnabled = false;
         try {
+            UpdateButton.Tag = null;
             UpdateStatus.Text = "Güncelleme kontrol ediliyor…";
             availableRelease = await UpdateService.Check();
             ShowUpdateResult(availableRelease);
@@ -252,6 +253,7 @@ public partial class MainWindow : Window {
     }
     internal void ShowUpdateResult(ReleaseInfo? release) {
         availableRelease = release;
+        UpdateButton.Tag = release is null ? null : "update-available";
         UpdateStatus.Text = release is null ? "VibeCodingLight'ın en güncel sürümünü kullanıyorsunuz." : $"{release.Version} sürümü hazır. İndirme sayfasını açıp yeni sürümü indirerek mevcut uygulamanın üzerine kurabilirsin. Ayarların korunur.";
         if (release is not null) Notice.Text = $"VibeCodingLight {release.Version} hazır · İndirme bağlantısı Ayarlar'da.";
         UpdateButton.Content = release is null ? "Güncellemeleri kontrol et" : "İndirme sayfasını aç";
