@@ -103,8 +103,8 @@ public partial class MainWindow : Window {
     }
     private string ConnectionAppearance(string family) {
         if (runtime.Connections.TryGetValue(family, out var check))
-            return !check.Enabled ? "disabled" : check.Healthy ? "healthy" : "unhealthy";
-        return runtime.Preferences.OwnedCommands.GetValueOrDefault(family)?.Count > 0 ? "checking" : "disabled";
+            return !check.Enabled ? "disabled" : !check.Healthy ? "unhealthy" : runtime.HasObservedConnection(family) ? "healthy" : "pending";
+        return runtime.Preferences.OwnedCommands.GetValueOrDefault(family)?.Count > 0 ? "pending" : "disabled";
     }
     private static SolidColorBrush Brush(string color) => new((System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString(color));
     private void ApplyTheme() {
@@ -210,7 +210,16 @@ public partial class MainWindow : Window {
     private void InstallHook_Click(object sender, RoutedEventArgs e) => ChangeHook((string)((Button)sender).Tag, true);
     private void RemoveHook_Click(object sender, RoutedEventArgs e) => ChangeHook((string)((Button)sender).Tag, false);
     private void ChangeHook(string family, bool install) {
-        try { Integrations.Change(runtime.Preferences, family, install); HookNoticeFamily = install ? family : null; Notice.Text = family == "opencode" ? (install ? "OpenCode eklentisi kuruldu. OpenCode’u yeniden başlatıp bir mesaj gönder." : "OpenCode eklentisi kaldırıldı (yedek saklandı). OpenCode’u yeniden başlat.") : install ? "Hook kurulu. Henüz olay alınmadı; harness güven onayını kontrol edip bir mesaj gönder." : "VibeCodingLight hook'ları kaldırıldı."; Refresh(); }
+        try {
+            Integrations.Change(runtime.Preferences, family, install);
+            HookNoticeFamily = install ? family : null;
+            string name = HarnessCatalog.Label(family);
+            Notice.Text = family == "opencode"
+                ? (install ? "OpenCode eklentisi kuruldu. OpenCode'u tamamen kapatıp yeniden aç ve yeni bir oturumda mesaj gönder." : "OpenCode eklentisi kaldırıldı (yedek saklandı). Değişikliğin uygulanması için OpenCode'u tamamen kapatıp yeniden aç.")
+                : install ? $"{name} bağlantısı etkinleştirildi. Güven onayını kontrol et ve yeni bir oturumda mesaj gönder. Değişikliğin uygulanması için {name} uygulamasını veya CLI oturumunu tamamen kapatıp yeniden açman gerekebilir."
+                : $"{name} için VibeCodingLight hook'ları kaldırıldı. Değişikliğin uygulanması için ilgili uygulamayı veya CLI oturumunu tamamen kapatıp yeniden açman gerekebilir.";
+            Refresh();
+        }
         catch (Exception ex) { Notice.Text = ex.Message; }
         runtime.ResetConnectionObservation(family);
         _ = runtime.CheckConnections();
@@ -243,7 +252,7 @@ public partial class MainWindow : Window {
     }
     internal void ShowUpdateResult(ReleaseInfo? release) {
         availableRelease = release;
-        UpdateStatus.Text = release is null ? "Güncelsin." : $"{release.Version} sürümü hazır. İndirme sayfasını açıp yeni sürümü indirerek mevcut uygulamanın üzerine kurabilirsin. Ayarların korunur.";
+        UpdateStatus.Text = release is null ? "VibeCodingLight'ın en güncel sürümünü kullanıyorsunuz." : $"{release.Version} sürümü hazır. İndirme sayfasını açıp yeni sürümü indirerek mevcut uygulamanın üzerine kurabilirsin. Ayarların korunur.";
         if (release is not null) Notice.Text = $"VibeCodingLight {release.Version} hazır · İndirme bağlantısı Ayarlar'da.";
         UpdateButton.Content = release is null ? "Güncellemeleri kontrol et" : "İndirme sayfasını aç";
     }

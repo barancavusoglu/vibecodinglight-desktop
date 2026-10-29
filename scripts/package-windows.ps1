@@ -28,7 +28,8 @@ $name = "VibeCodingLight-windows-v$version-win-x64"
 $output = [IO.Path]::GetFullPath($OutputDirectory)
 $stage = Join-Path $output $name
 $archive = Join-Path $output "$name.zip"
-foreach ($path in @($stage, $archive, "$archive.sha256")) {
+$channel = Join-Path $output 'windows-release.json'
+foreach ($path in @($stage, $archive, "$archive.sha256", $channel)) {
     if (Test-Path -LiteralPath $path) { throw "Output already exists; choose a new output directory: $path" }
 }
 New-Item -ItemType Directory -Path $stage -Force | Out-Null
@@ -54,4 +55,9 @@ $metadata | ConvertTo-Json | Set-Content -LiteralPath (Join-Path $stage 'release
 Compress-Archive -LiteralPath $stage -DestinationPath $archive
 $archiveHash = (Get-FileHash -LiteralPath $archive -Algorithm SHA256).Hash.ToLowerInvariant()
 "$archiveHash  $name.zip" | Set-Content -LiteralPath "$archive.sha256" -Encoding utf8NoBOM
+[ordered]@{
+    version = $version
+    archiveSha256 = $archiveHash
+    installerSha256 = $installerHash
+} | ConvertTo-Json | Set-Content -LiteralPath $channel -Encoding utf8NoBOM
 [pscustomobject]@{ Archive = $archive; Sha256 = $archiveHash; Signature = $signature.Status; SourceCommit = $commit }

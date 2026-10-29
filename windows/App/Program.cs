@@ -153,14 +153,45 @@ public static class Program {
                     }
                 }
                 if (args.Contains("--connection-cards-check")) {
-                    runtime.Connections["codex"] = new("codex", true, false, "test", "Onarım gerekiyor · Stop eksik/eski");
-                    runtime.Connections["claude"] = new("claude", true, true, "test", "Kayıtlar sağlıklı");
-                    runtime.Connections["opencode"] = new("opencode", false, false, "test", "Etkin değil");
+                    runtime.Engine.IsVisible = _ => true;
+                    var cards = new Dictionary<string, System.Windows.Controls.ContentControl> {
+                        ["codex"] = runtime.Window.CodexCard, ["claude"] = runtime.Window.ClaudeCard,
+                        ["opencode"] = runtime.Window.OpenCodeCard, ["copilot"] = runtime.Window.CopilotCard,
+                        ["antigravity"] = runtime.Window.AntigravityCard
+                    };
+                    foreach (var (family, card) in cards) {
+                        runtime.ResetConnectionObservation(family);
+                        runtime.Connections[family] = new(family, false, false, "test", "Etkin değil");
+                        runtime.Window.Refresh();
+                        if ((string)card.Tag != "disabled") throw new Exception("Disabled connection lost stripes: " + family);
+                        runtime.Connections[family] = new(family, true, true, "test", "Kayıtlar sağlıklı");
+                        runtime.Window.Refresh();
+                        if ((string)card.Tag != "pending" || !runtime.ConnectionStatus(family).Contains("kapatıp yeniden aç"))
+                            throw new Exception("Unobserved connection must be amber with restart guidance: " + family);
+                        runtime.Receive("null");
+                        runtime.Window.Refresh();
+                        if ((string)card.Tag != "pending") throw new Exception("Invalid payload confirmed a connection: " + family);
+                        var hook = new AiLight.Core.HookEvent(Guid.NewGuid().ToString(), family, "connection-" + family,
+                            family == "opencode" ? "OpenCodeWorking" : "UserPromptSubmit", "", "", "", "Preview", "", false, 1);
+                        runtime.Receive(System.Text.Json.JsonSerializer.Serialize(hook));
+                        runtime.Window.Refresh();
+                        if ((string)card.Tag != "healthy" || !runtime.ConnectionStatus(family).Contains("gerçek olay alındı")
+                            || runtime.Engine.Aggregate != AiLight.Core.Activity.Working)
+                            throw new Exception("Actual event did not confirm the connection or preserve working state: " + family);
+                        runtime.Connections[family] = new(family, true, false, "changed", "Onarım gerekiyor");
+                        runtime.Window.Refresh();
+                        if ((string)card.Tag != "unhealthy") throw new Exception("Observed event hid broken registration: " + family);
+                        runtime.ResetConnectionObservation(family);
+                        runtime.Connections[family] = new(family, true, true, "repaired", "Kayıtlar sağlıklı");
+                        runtime.Window.Refresh();
+                        if ((string)card.Tag != "pending") throw new Exception("Repair did not require fresh event: " + family);
+                    }
+                    // Leave an amber, green and disabled card visible for inspection.
+                    runtime.Receive(System.Text.Json.JsonSerializer.Serialize(new AiLight.Core.HookEvent(
+                        Guid.NewGuid().ToString(), "claude", "connection-claude", "UserPromptSubmit", "", "", "", "Preview", "", false, 2)));
+                    foreach (var family in new[] { "opencode", "copilot", "antigravity" })
+                        runtime.Connections[family] = new(family, false, false, "", "Etkin değil");
                     runtime.Window.Refresh();
-                    if ((string)runtime.Window.CodexCard.Tag != "unhealthy" || (string)runtime.Window.ClaudeCard.Tag != "healthy" || (string)runtime.Window.OpenCodeCard.Tag != "disabled") throw new Exception("Connection card visual mapping failed");
-                    runtime.Connections["codex"] = new("codex", false, false, "", "Etkin değil"); runtime.Window.Refresh();
-                    if ((string)runtime.Window.CodexCard.Tag != "disabled") throw new Exception("Disabled connection retained error style");
-                    runtime.Connections["codex"] = new("codex", true, false, "test", "Onarım gerekiyor · Stop eksik/eski"); runtime.Window.Refresh();
                 }
                 if (args.Contains("--compact-test")) { renderWindow.Width = 420; renderWindow.Height = 600; }
                 if (args.Contains("--expand-color-test")) runtime.Window.ColorTestExpander.IsExpanded = true;
@@ -188,12 +219,17 @@ public static class Program {
                 }
                 if (args.Contains("--update-available-test")) {
                     runtime.Window.ShowUpdateResult(null);
-                    if ((string)runtime.Window.UpdateButton.Content != "Güncellemeleri kontrol et" || runtime.Window.UpdateStatus.Text != "Güncelsin.")
+                    if ((string)runtime.Window.UpdateButton.Content != "Güncellemeleri kontrol et" || runtime.Window.UpdateStatus.Text != "VibeCodingLight'ın en güncel sürümünü kullanıyorsunuz.")
                         throw new Exception("Current release UI failed");
-                    runtime.Window.ShowUpdateResult(new ReleaseInfo("0.1.48"));
+                    runtime.Window.ShowUpdateResult(new ReleaseInfo("0.1.53"));
                     if ((string)runtime.Window.UpdateButton.Content != "İndirme sayfasını aç" || !runtime.Window.UpdateStatus.Text.Contains("Ayarların korunur"))
                         throw new Exception("Download page update UI failed");
                     runtime.Window.UpdateButton.BringIntoView();
+                }
+                if (args.Contains("--update-current-test")) {
+                    runtime.Window.ShowUpdateResult(null);
+                    runtime.Window.Notice.Text = "";
+                    runtime.Window.UpdateStatus.BringIntoView();
                 }
                 if (args.Contains("--scroll-check")) {
                     renderWindow.UpdateLayout();

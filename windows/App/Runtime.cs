@@ -56,11 +56,12 @@ public sealed class Runtime : IDisposable {
     public DateTime? LastConnectionCheck { get; private set; }
     public Dictionary<string, ConnectionCheck> Connections { get; } = [];
     private readonly HashSet<string> observedConnections = [];
-    public string HealthWarning => string.Join(", ", Connections.Values.Where(c => c.Enabled && !c.Healthy).Select(c => c.Family)) is { Length: > 0 } names ? names + " · kayıtları kontrol et / onar" : "";
+    public bool HasObservedConnection(string family) => observedConnections.Contains(family);
+    public string HealthWarning => string.Join(", ", Connections.Values.Where(c => c.Enabled && !c.Healthy).Select(c => HarnessCatalog.Label(c.Family))) is { Length: > 0 } names ? names + " · kayıtları kontrol et / onar. Değişiklikten sonra ilgili uygulamayı veya CLI oturumunu tamamen kapatıp yeniden açman gerekebilir." : "";
     public string ConnectionStatus(string family) {
         if (!Connections.TryGetValue(family, out var check)) return "Kontrol bekleniyor";
         if (!check.Healthy) return check.Detail;
-        return check.Detail + (observedConnections.Contains(family) ? " · gerçek olay alındı" : " · gerçek olay henüz alınmadı; güven onayını kontrol et");
+        return check.Detail + (HasObservedConnection(family) ? " · gerçek olay alındı" : " · gerçek olay bekleniyor. Güven onayını kontrol et; gerekirse ilgili uygulamayı veya CLI oturumunu tamamen kapatıp yeniden aç ve yeni oturumda mesaj gönder.");
     }
     public void ResetConnectionObservation(string family) => observedConnections.Remove(family);
     public Task CheckConnections() {
@@ -103,7 +104,7 @@ public sealed class Runtime : IDisposable {
             foreach (var family in HarnessCatalog.Families.Where(f => f != "opencode")) {
                 var owned = Preferences.OwnedCommands.GetValueOrDefault(family);
                 if (owned?.Count > 0 && !Integrations.IsInstalled(Preferences, family)) {
-                    try { Integrations.Change(Preferences, family, true); Window.HookNoticeFamily = family; Window.Notice.Text = family == "codex" ? "Eksik veya eski hook kayıtları onarıldı. Codex'te yeni/değişen kayıtların güven onayını kontrol et." : HarnessCatalog.Label(family) + " hook kayıtları onarıldı; yeni oturumda etkinleşir."; }
+                    try { Integrations.Change(Preferences, family, true); Window.HookNoticeFamily = family; Window.Notice.Text = (family == "codex" ? "Eksik veya eski hook kayıtları onarıldı. Codex'te yeni/değişen kayıtların güven onayını kontrol et." : HarnessCatalog.Label(family) + " hook kayıtları onarıldı.") + " Değişikliklerin uygulanması için ilgili uygulamayı veya CLI oturumunu tamamen kapatıp yeniden açman gerekebilir; ardından yeni oturumda mesaj gönder."; }
                     catch (Exception ex) { Window.Notice.Text = "Hook taşıma: " + ex.Message; }
                 }
             }
@@ -150,7 +151,7 @@ public sealed class Runtime : IDisposable {
             AiLight.App.Diagnostics.Capture(Engine, key), Preferences.Brightness, Testing, DeviceConnected, source: outcome);
         Persist(); Tick();
     }
-    private void Receive(string text) {
+    internal void Receive(string text) {
         if (text == "SHOW") { Show(); return; }
         if (text == "EXIT") { Exit(); return; }
         try { var e = JsonSerializer.Deserialize<HookEvent>(text); if (e is not null) {
