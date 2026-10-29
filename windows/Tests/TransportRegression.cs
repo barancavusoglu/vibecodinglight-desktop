@@ -45,6 +45,41 @@ public static class TransportRegression {
         await connection.TickAsync("", "", "SET_RGB 9 8 7", now.AddSeconds(10), timeout.Token);
         check(connection.Connected && !connection.IsUsb && fake.Opened.Last().Commands.Last() == "SET_RGB 9 8 7", "After USB loss BLE receives current state, not buffered old output");
 
+        foreach (bool failOpen in new[] { true, false }) {
+            var transition = new Discovery { Usb = ["COM1"], Ble = ["BLE:A"] };
+            using var robot = new RobotConnection(transition);
+            await robot.TickAsync("", "", "SET_RGB 1 2 3", now, timeout.Token);
+            transition.Opened.Single().Fail = true;
+            transition.Usb = [];
+            await robot.TickAsync("", "", "SET_RGB 1 2 3", now.AddSeconds(2), timeout.Token);
+            await robot.TickAsync("", "", "SET_RGB 1 2 3", now.AddSeconds(3), timeout.Token);
+            string connectedStatus = robot.Status;
+            var bleLink = transition.Opened.Last();
+            long generation = robot.Generation;
+            check(robot.State.Transport == DeviceTransport.Bluetooth && connectedStatus.StartsWith("Bluetooth bağlı"),
+                "USB removal and powerbank reconnect establish a healthy BLE status");
+
+            transition.Usb = ["COM1"];
+            transition.FailUsbOpen = failOpen;
+            transition.FailUsbInfo = !failOpen;
+            await robot.TickAsync("", "", "SET_RGB 1 2 3", now.AddSeconds(6), timeout.Token);
+            await robot.TickAsync("", "", "SET_RGB 9 8 7", now.AddSeconds(9), timeout.Token);
+            check(robot.State.Transport == DeviceTransport.Bluetooth && robot.State.Detail == connectedStatus
+                && robot.Generation == generation && !bleLink.Disposed
+                && bleLink.Commands.TakeLast(2).SequenceEqual(new[] { "PING", "SET_RGB 9 8 7" }),
+                (failOpen ? "USB open failure" : "USB INFO failure") + " preserves live BLE status, heartbeat and current color output");
+
+            bleLink.Fail = true;
+            await robot.TickAsync("", "", "SET_RGB 9 8 7", now.AddSeconds(11), timeout.Token);
+            check(!robot.State.Connected && robot.Status.StartsWith("Bağlantı kesildi"),
+                "A real BLE failure still clears connected state and reports disconnection after a failed USB probe");
+            transition.FailUsbOpen = transition.FailUsbInfo = false;
+            await robot.TickAsync("", "", "SET_RGB 9 8 7", now.AddSeconds(12), timeout.Token);
+            check(robot.IsUsb && robot.Status.Contains("USB bağlı")
+                && transition.Opened.Last().Commands.SequenceEqual(new[] { "INFO", "SET_RGB 9 8 7" }),
+                "Recovered USB retains priority and replaces the status with the healthy USB connection");
+        }
+
         var multi = new Discovery { Ble = ["BLE:A", "BLE:B"] };
         using var multiple = new RobotConnection(multi);
         await multiple.TickAsync("", "", "SET_RGB 1 0 0", now, timeout.Token);
@@ -99,13 +134,16 @@ public static class TransportRegression {
         public string UsbInfo = Info, BleInfo = Info;
         public List<Link> Opened = [];
         public bool BluetoothEnabled, EverEnabled;
+        public bool FailUsbOpen, FailUsbInfo;
         public void SetBluetoothEnabled(bool enabled) { BluetoothEnabled = enabled; EverEnabled |= enabled; }
         public string BluetoothStatus => "Bluetooth robotu aranıyor";
         public IReadOnlyList<string> UsbCandidates() => Usb;
         public IReadOnlyList<string> BleCandidates() => Ble;
         public Task<IRobotLink> OpenAsync(string address, CancellationToken stop) {
             stop.ThrowIfCancellationRequested();
+            if (!address.StartsWith("BLE:") && FailUsbOpen) throw new UnauthorizedAccessException("port unavailable");
             var link = new Link(address, address.StartsWith("BLE:") ? BleInfo : UsbInfo); Opened.Add(link);
+            if (link.IsUsb && FailUsbInfo) link.Fail = true;
             return Task.FromResult<IRobotLink>(link);
         }
         public void Dispose() { }

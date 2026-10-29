@@ -102,7 +102,9 @@ public sealed class RobotConnection(IRobotDiscovery discovery) : IDisposable {
             candidate = null; return verified;
         } catch (Exception e) when (e is IOException or UnauthorizedAccessException or TimeoutException
             or InvalidOperationException or OperationCanceledException or ArgumentException) {
-            Status = address.StartsWith("BLE:", StringComparison.Ordinal) ? "Bluetooth bağlantısı kurulamadı" : "USB portu açılamadı · Seri Monitör'ü kapat";
+            // A failed USB priority probe must not replace a live BLE connection's status.
+            if (link is null)
+                Status = address.StartsWith("BLE:", StringComparison.Ordinal) ? "Bluetooth bağlantısı kurulamadı" : "USB portu açılamadı · Seri Monitör'ü kapat";
             return null;
         } finally { candidate?.Dispose(); }
     }
