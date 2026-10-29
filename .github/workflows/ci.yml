@@ -32,6 +32,13 @@ jobs:
       - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
         with:
           node-version: 24
+      - name: Check online installer on Windows PowerShell and PowerShell 7
+        shell: pwsh
+        run: |
+          powershell.exe -NoProfile -Command "Invoke-Expression ([IO.File]::ReadAllText('windows/Tests/online-install.test.ps1'))"
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          pwsh -NoProfile -File windows/Tests/online-install.test.ps1
+          exit $LASTEXITCODE
       - name: Restore locked dependencies
         shell: pwsh
         run: |
