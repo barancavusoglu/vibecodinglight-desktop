@@ -4,8 +4,6 @@ using AiLight.Core;
 
 namespace AiLight.App;
 
-public record ConnectionCheck(string Family, bool Enabled, bool Healthy, string Fingerprint, string Detail);
-
 public static class ConnectionHealth {
     public static readonly string[] Families = HarnessCatalog.Families;
     public static ConnectionCheck Check(string family, bool enabled) {

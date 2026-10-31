@@ -10,7 +10,7 @@ using AiLight.Core;
 using ShapePath = Avalonia.Controls.Shapes.Path;
 using Rectangle = Avalonia.Controls.Shapes.Rectangle;
 using Ellipse = Avalonia.Controls.Shapes.Ellipse;
-namespace AiLight.Mac;
+namespace AiLight.Desktop;
 
 public sealed class MainWindow : Window
 {
@@ -55,7 +55,7 @@ public sealed class MainWindow : Window
         this.runtime = runtime;
         Title = "VibeCodingLight"; Width = 460; Height = 760; MinWidth = 420; MinHeight = 600; FontSize = 13;
         WindowStartupLocation = WindowStartupLocation.CenterScreen;
-        Styles.Add(new StyleInclude(new Uri("avares://VibeCodingLight/")) { Source = new Uri("avares://VibeCodingLight/Styles.axaml") });
+        Styles.Add(new StyleInclude(new Uri("avares://VibeCodingLight.Desktop/")) { Source = new Uri("avares://VibeCodingLight.Desktop/Styles.axaml") });
         var root = new DockPanel { Margin = new Thickness(24, 22, 24, 18), MaxWidth = 1640 };
         var header = new DockPanel { Margin = new Thickness(0, 0, 0, 22) };
         var badge = new Border { Child = Hint("BETA", 10), CornerRadius = new CornerRadius(7), Padding = new Thickness(8, 4), VerticalAlignment = VerticalAlignment.Center };
@@ -144,12 +144,12 @@ public sealed class MainWindow : Window
         light.Children.Add(idle); light.Children.Add(Text("Bekleme süresi", 13)); light.Children.Add(minutes); light.Children.Add(Hint("Mavi nefes bu süre sonunda kapanır. Yeni çalışma başladığında ışık geri gelir.")); cards.Children.Add(Card(light));
         var appearance = new StackPanel { Spacing = 12 }; appearance.Children.Add(Section("Görünüm"));
         var themes = new UniformGrid { Columns = 2 };
-        foreach (string theme in MacThemes.All)
+        foreach (string theme in DesktopThemes.All)
         {
-            var palette = MacThemes.Palette(theme); var content = new StackPanel { Spacing = 5 };
+            var palette = DesktopThemes.Palette(theme); var content = new StackPanel { Spacing = 5 };
             var swatches = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 3, Margin = new Thickness(0, 0, 0, 4) };
             foreach (string color in new[] { palette[0], palette[5], palette[8] }) swatches.Children.Add(new Border { Width = 18, Height = 28, Background = Brush(color), CornerRadius = new CornerRadius(4) });
-            content.Children.Add(swatches); content.Children.Add(Section(MacThemes.Name(theme), 13)); content.Children.Add(Hint(MacThemes.Description(theme), 11));
+            content.Children.Add(swatches); content.Children.Add(Section(DesktopThemes.Name(theme), 13)); content.Children.Add(Hint(DesktopThemes.Description(theme), 11));
             var choice = Action("", () => { SetTheme(theme); runtime.Save(); }); choice.Content = content; choice.HorizontalAlignment = HorizontalAlignment.Stretch; choice.HorizontalContentAlignment = HorizontalAlignment.Stretch; choice.Padding = new Thickness(9); choice.Margin = new Thickness(3, 0, 3, 7); choice.Classes.Add("theme"); themeButtons[theme] = choice; themes.Children.Add(choice);
         }
         appearance.Children.Add(themes); appearance.Children.Add(themeLabel); appearanceCard = Card(appearance); cards.Children.Add(appearanceCard);
@@ -158,8 +158,8 @@ public sealed class MainWindow : Window
         var ports = new ComboBox { HorizontalAlignment = HorizontalAlignment.Stretch }; AutomationProperties.SetName(ports, "USB veya Bluetooth cihazı");
         void Scan() {
             if (ports.IsDropDownOpen) return;
-            var choices = DevicePortChoice.Create(OperatingSystem.IsMacOS() ? Device.Ports() : [], runtime.Preferences.Port, OperatingSystem.IsMacOS(), runtime.DeviceState.Address);
-            var selection = choices.First(c => DevicePortChoice.Matches(c.Address, runtime.Preferences.Port, OperatingSystem.IsMacOS()));
+            var choices = DevicePortChoice.Create(Program.Preview ? [] : Device.Ports(), runtime.Preferences.Port, DesktopEnvironment.Platform.IsMacOS, runtime.DeviceState.Address);
+            var selection = choices.First(c => DevicePortChoice.Matches(c.Address, runtime.Preferences.Port, DesktopEnvironment.Platform.IsMacOS));
             if (ports.ItemsSource is DevicePortChoice[] current && current.SequenceEqual(choices) && Equals(ports.SelectedItem, selection)) return;
             bool previous = ready; ready = false; ports.ItemsSource = choices; ports.SelectedItem = selection; ready = previous;
         }
@@ -172,19 +172,19 @@ public sealed class MainWindow : Window
         var testPanel = new StackPanel { Spacing = 12 }; testPanel.Children.Add(wheelRow); testPanel.Children.Add(Hint("Son seçimden 3 saniye sonra normal duruma döner."));
         ColorTestExpander = new Expander { Header = "Renk testi", Content = testPanel, HorizontalAlignment = HorizontalAlignment.Stretch, HorizontalContentAlignment = HorizontalAlignment.Stretch }; devicePanel.Children.Add(ColorTestExpander); DeviceCard = Card(devicePanel); cards.Children.Add(DeviceCard);
         var app = new StackPanel { Spacing = 12 }; app.Children.Add(Section("Uygulama"));
-        var autostart = new CheckBox { Content = "macOS açılınca başlat", IsChecked = !Program.Preview && StartupService.IsEnabled(runtime.Preferences) };
+        var autostart = new CheckBox { Content = "Bilgisayar açılınca başlat", IsChecked = !Program.Preview && StartupService.IsEnabled(runtime.Preferences) };
         autostart.IsCheckedChanged += (_, _) =>
         {
             if (!ready) return;
             try { if (!Program.Preview) StartupService.Change(runtime.Preferences, autostart.IsChecked == true); else runtime.Preferences.StartAtLogin = autostart.IsChecked == true; runtime.Save(); }
             catch (Exception e) { runtime.Notice = e.Message; ready = false; autostart.IsChecked = runtime.Preferences.StartAtLogin; ready = true; runtime.Tick(); }
         };
-        app.Children.Add(autostart); app.Children.Add(Hint("macOS giriş öğesi izinlerini Sistem Ayarları'ndan yönetebilirsin.")); app.Children.Add(Divider());
+        app.Children.Add(autostart); app.Children.Add(Hint("Oturum açıldığında arka planda başlatılır.")); app.Children.Add(Divider());
         var autoUpdates = new CheckBox { Content = "Açılışta yeni sürümü kontrol et", IsChecked = runtime.Preferences.AutoCheckUpdates };
         autoUpdates.IsCheckedChanged += (_, _) => { if (!ready) return; runtime.Preferences.AutoCheckUpdates = autoUpdates.IsChecked == true; runtime.Save(); };
         app.Children.Add(autoUpdates); app.Children.Add(Hint("Yeni sürüm varsa haber verir. Yeni paketi indirip kurulumu kendin yapabilirsin; ayarların korunur."));
         updateButton = Action("Güncellemeleri kontrol et", () => { _ = UpdateClicked(); }); app.Children.Add(updateButton); app.Children.Add(updateStatus); app.Children.Add(Divider());
-        app.Children.Add(Section("VibeCodingLight hakkında", 13)); app.Children.Add(Text($"VibeCodingLight {typeof(MainWindow).Assembly.GetName().Version!.ToString(3)} · macOS beta", 13)); app.Children.Add(Hint("www.vibecodinglight.com"));
+        app.Children.Add(Section("VibeCodingLight hakkında", 13)); app.Children.Add(Text($"VibeCodingLight {typeof(MainWindow).Assembly.GetName().Version!.ToString(3)} · {DesktopEnvironment.Platform.Name} beta", 13)); app.Children.Add(Hint("www.vibecodinglight.com"));
         var install = Action("Bilgisayara kur", () => { try { if (!Program.Preview) Installer.StartInstall(); } catch (Exception e) { runtime.Notice = e.Message; runtime.Tick(); } }); install.IsVisible = !Installer.IsInstalled; app.Children.Add(install);
         var uninstall=Action("Uygulamayı kaldır",()=>{_=ConfirmUninstall();});uninstall.IsVisible=Installer.IsInstalled;app.Children.Add(uninstall);
         app.Children.Add(Action("Uygulamadan çık", runtime.Exit)); applicationCard = Card(app); cards.Children.Add(applicationCard);
@@ -192,12 +192,12 @@ public sealed class MainWindow : Window
     }
     public void SetTheme(string theme)
     {
-        theme = MacThemes.Normalize(theme); runtime.Preferences.Theme = theme;
-        if (Application.Current is { } app) app.RequestedThemeVariant = MacThemes.IsDark(theme) ? ThemeVariant.Dark : ThemeVariant.Light;
-        string[] palette = MacThemes.Palette(theme), keys = ["Page", "Ink", "Control", "Muted", "Hero", "Card", "Notice", "Edge", "Accent"];
+        theme = DesktopThemes.Normalize(theme); runtime.Preferences.Theme = theme;
+        if (Application.Current is { } app) app.RequestedThemeVariant = DesktopThemes.IsDark(theme) ? ThemeVariant.Dark : ThemeVariant.Light;
+        string[] palette = DesktopThemes.Palette(theme), keys = ["Page", "Ink", "Control", "Muted", "Hero", "Card", "Notice", "Edge", "Accent"];
         for (int i = 0; i < keys.Length; i++) Resources[keys[i]] = Brush(palette[i]);
-        Background = Brush(palette[0]); Foreground = Brush(palette[1]); themeLabel.Text = "Seçili: " + MacThemes.Name(theme) + " · LED renklerini değiştirmez";
-        foreach (var (id, choice) in themeButtons) { choice.Classes.Set("selected", id == theme); AutomationProperties.SetName(choice, MacThemes.Name(id) + (id == theme ? " · seçili" : "")); }
+        Background = Brush(palette[0]); Foreground = Brush(palette[1]); themeLabel.Text = "Seçili: " + DesktopThemes.Name(theme) + " · LED renklerini değiştirmez";
+        foreach (var (id, choice) in themeButtons) { choice.Classes.Set("selected", id == theme); AutomationProperties.SetName(choice, DesktopThemes.Name(id) + (id == theme ? " · seçili" : "")); }
         sessionSnapshot = "\0";
     }
     public void Refresh()
@@ -214,7 +214,7 @@ public sealed class MainWindow : Window
         string snapshot = System.Text.Json.JsonSerializer.Serialize(all.Select(s => new { s.Key, Title = runtime.Titles.Get(s), s.Project, s.Reason, s.ExcludedFromLight, Activity = runtime.Shown(s), runtime.PermissionReviewHeld, Theme = runtime.Preferences.Theme }));
         if (snapshot != sessionSnapshot) { sessionSnapshot = snapshot; sessions.Children.Clear(); sessionActions.Clear(); empty.IsVisible = all.Length == 0; foreach (var s in all) sessions.Children.Add(SessionCard(s)); }
         int selected = SettingSteps.BrightnessLevel(runtime.Preferences.Brightness);
-        for (int i = 0; i < brightnessButtons.Count; i++) { var (button, bar) = brightnessButtons[i]; bar.Background = i <= selected ? Brush(MacThemes.Palette(runtime.Preferences.Theme)[8]) : Brushes.Transparent; bar.BorderBrush = Brush(MacThemes.Palette(runtime.Preferences.Theme)[i <= selected ? 8 : 3]); AutomationProperties.SetName(button, $"Parlaklık · %{SettingSteps.BrightnessPercent(i)}" + (i == selected ? " · seçili" : "")); }
+        for (int i = 0; i < brightnessButtons.Count; i++) { var (button, bar) = brightnessButtons[i]; bar.Background = i <= selected ? Brush(DesktopThemes.Palette(runtime.Preferences.Theme)[8]) : Brushes.Transparent; bar.BorderBrush = Brush(DesktopThemes.Palette(runtime.Preferences.Theme)[i <= selected ? 8 : 3]); AutomationProperties.SetName(button, $"Parlaklık · %{SettingSteps.BrightnessPercent(i)}" + (i == selected ? " · seçili" : "")); }
         bool preview = Program.Preview;
         foreach (var (family, label) in statuses)
         {
@@ -268,13 +268,13 @@ public sealed class MainWindow : Window
         var title = Section(runtime.Titles.Get(s), 13); title.TextWrapping = TextWrapping.NoWrap; title.TextTrimming = TextTrimming.CharacterEllipsis; ToolTip.SetTip(title, title.Text); texts.Children.Add(title);
         texts.Children.Add(Hint(Label(s.Harness) + (s.Project.Length > 0 ? " · " + s.Project : "")));
         var detail = Text(s.ExcludedFromLight ? "Işığa dahil değil · " + s.Reason : LightPresentation.CheckingPermission(s, runtime.PermissionReviewHeld) ? "İzin kontrol ediliyor" : s.Reason, 12);
-        detail.Foreground = Brush(s.ExcludedFromLight || runtime.Shown(s) == Activity.Idle ? MacThemes.Palette(runtime.Preferences.Theme)[3] : MacThemes.SessionColor(runtime.Preferences.Theme, runtime.Shown(s) == Activity.NeedsInput)); texts.Children.Add(detail); content.Children.Add(texts);
+        detail.Foreground = Brush(s.ExcludedFromLight || runtime.Shown(s) == Activity.Idle ? DesktopThemes.Palette(runtime.Preferences.Theme)[3] : DesktopThemes.SessionColor(runtime.Preferences.Theme, runtime.Shown(s) == Activity.NeedsInput)); texts.Children.Add(detail); content.Children.Add(texts);
         var actions = new StackPanel { Orientation = Orientation.Horizontal, VerticalAlignment = VerticalAlignment.Center };
-        var hide = Action("", () => { runtime.ToggleLight(s.Key); }); hide.Classes.Add("icon"); hide.Padding = new Thickness(7); hide.Content = new ShapePath { Data = Geometry.Parse(s.ExcludedFromLight ? "M2,12 Q12,1 22,12 Q12,23 2,12 M3,3 L21,21" : "M2,12 Q12,1 22,12 Q12,23 2,12 M15,12 A3,3 0 1 1 9,12 A3,3 0 1 1 15,12"), Width = 19, Height = 19, Stretch = Stretch.Uniform, Stroke = Brush(MacThemes.Palette(runtime.Preferences.Theme)[3]), StrokeThickness = 1.7 }; string eyeTip = s.ExcludedFromLight ? "Işığa dahil et" : "Işıktan hariç tut (soru ve izinler dahil)"; ToolTip.SetTip(hide, eyeTip); AutomationProperties.SetName(hide, eyeTip); actions.Children.Add(hide);
+        var hide = Action("", () => { runtime.ToggleLight(s.Key); }); hide.Classes.Add("icon"); hide.Padding = new Thickness(7); hide.Content = new ShapePath { Data = Geometry.Parse(s.ExcludedFromLight ? "M2,12 Q12,1 22,12 Q12,23 2,12 M3,3 L21,21" : "M2,12 Q12,1 22,12 Q12,23 2,12 M15,12 A3,3 0 1 1 9,12 A3,3 0 1 1 15,12"), Width = 19, Height = 19, Stretch = Stretch.Uniform, Stroke = Brush(DesktopThemes.Palette(runtime.Preferences.Theme)[3]), StrokeThickness = 1.7 }; string eyeTip = s.ExcludedFromLight ? "Işığa dahil et" : "Işıktan hariç tut (soru ve izinler dahil)"; ToolTip.SetTip(hide, eyeTip); AutomationProperties.SetName(hide, eyeTip); actions.Children.Add(hide);
         var forget = Action("×", () => { runtime.Forget(s.Key); }); forget.Classes.Add("icon"); forget.Padding = new Thickness(7); forget.FontSize = 18; ToolTip.SetTip(forget, "Bu kaydı listeden kaldır"); AutomationProperties.SetName(forget, "Oturum kaydını kaldır"); actions.Children.Add(forget); sessionActions[s.Key] = (hide, forget); Grid.SetColumn(actions, 1); content.Children.Add(actions);
         var card = Card(content); card.Padding = new Thickness(16); card.Margin = new Thickness(8, 8, 10, 12); ApplyState(card, s.ExcludedFromLight ? "disabled" : runtime.Shown(s) switch { Activity.NeedsInput => "unhealthy", Activity.Working => "healthy", _ => "idle" }); return card;
     }
-    private void ApplyState(StatusCard card, string state) { string key = state + ":" + runtime.Preferences.Theme; if (card.Tag as string == key) return; card.Tag = key; string hex = state switch { "healthy" => "#49A76D", "pending" => "#C69C37", "unhealthy" => "#D96653", "idle" => "#4D8CD4", _ => MacThemes.Palette(runtime.Preferences.Theme)[3] }; card.BorderBrush = Brush(hex); card.BorderThickness = new Thickness(1.5); card.SetStripe(state == "disabled", Brush(MacThemes.Palette(runtime.Preferences.Theme)[5]), Color.Parse(hex)); card.BoxShadow = state == "disabled" ? new BoxShadows() : new BoxShadows(new BoxShadow { Color = Color.FromArgb(MacThemes.IsDark(runtime.Preferences.Theme) ? (byte)95 : (byte)55, Color.Parse(hex).R, Color.Parse(hex).G, Color.Parse(hex).B), Blur = 14 }); }
+    private void ApplyState(StatusCard card, string state) { string key = state + ":" + runtime.Preferences.Theme; if (card.Tag as string == key) return; card.Tag = key; string hex = state switch { "healthy" => "#49A76D", "pending" => "#C69C37", "unhealthy" => "#D96653", "idle" => "#4D8CD4", _ => DesktopThemes.Palette(runtime.Preferences.Theme)[3] }; card.BorderBrush = Brush(hex); card.BorderThickness = new Thickness(1.5); card.SetStripe(state == "disabled", Brush(DesktopThemes.Palette(runtime.Preferences.Theme)[5]), Color.Parse(hex)); card.BoxShadow = state == "disabled" ? new BoxShadows() : new BoxShadows(new BoxShadow { Color = Color.FromArgb(DesktopThemes.IsDark(runtime.Preferences.Theme) ? (byte)95 : (byte)55, Color.Parse(hex).R, Color.Parse(hex).G, Color.Parse(hex).B), Blur = 14 }); }
     private async Task ConfirmUninstall() {
         if(Program.Preview)return;
         var confirm=new Window{Title="VibeCodingLight'ı kaldır",Width=420,Height=220,CanResize=false,WindowStartupLocation=WindowStartupLocation.CenterOwner};

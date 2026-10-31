@@ -2,7 +2,6 @@ using System.Security.Cryptography;
 using System.Text;
 using AiLight.Core;
 namespace AiLight.Mac;
-public sealed record ConnectionCheck(string Family, bool Enabled, bool Healthy, string Fingerprint, string Detail);
 public static class ConnectionHealth {
     public static ConnectionCheck Check(string family, bool enabled) {
         try {

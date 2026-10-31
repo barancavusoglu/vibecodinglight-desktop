@@ -5,17 +5,7 @@ using Microsoft.Win32;
 
 namespace AiLight.App;
 
-public sealed class Preferences {
-    public string Theme { get; set; } = DesktopThemes.Default;
-    public int Brightness { get; set; } = 65;
-    public bool IdleAutoOffEnabled { get; set; }
-    public int IdleAutoOffMinutes { get; set; } = 30;
-    public string Port { get; set; } = "";
-    public string DeviceId { get; set; } = "";
-    public bool StartAtLogin { get; set; }
-    public bool AutoCheckUpdates { get; set; } = true;
-    public Dictionary<string, List<string>> OwnedCommands { get; set; } = [];
-}
+public sealed class Preferences : DesktopPreferences { }
 public static class Storage {
     public static byte[]? CorrelationKey() {
         try {
@@ -40,7 +30,7 @@ public static class Storage {
         p.Brightness = SettingSteps.BrightnessPercent(SettingSteps.BrightnessLevel(p.Brightness));
         p.Port ??= ""; p.DeviceId ??= ""; p.OwnedCommands ??= [];
         p.IdleAutoOffMinutes = SettingSteps.NearestIdleMinutes(p.IdleAutoOffMinutes);
-        p.Theme = Themes.Normalize(p.Theme);
+        p.Theme = DesktopThemes.Normalize(p.Theme);
         return p;
     }
     public static T? Read<T>(string name) {
@@ -73,7 +63,7 @@ public static class Integrations {
             : Environment.GetEnvironmentVariable("CLAUDE_CONFIG_DIR") ?? Path.Combine(home, ".claude");
         return Path.Combine(dir, family == "codex" ? "hooks.json" : "settings.json");
     }
-    public static void Change(Preferences p, string family, bool install) {
+    public static void Change(DesktopPreferences p, string family, bool install) {
         if (family == "opencode") { OpenCodeIntegration.Change(p, install); return; }
         string path = ConfigPath(family);
         using var mutex = new Mutex(false, "Local\\AiLight.HookConfig." + family);
@@ -106,7 +96,7 @@ public static class Integrations {
             Storage.Save("settings.json", p);
         } finally { mutex.ReleaseMutex(); }
     }
-    public static bool IsInstalled(Preferences p, string family) {
+    public static bool IsInstalled(DesktopPreferences p, string family) {
         if (family == "opencode") return OpenCodeIntegration.Installed();
         try {
             if (family == "antigravity") {

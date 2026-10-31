@@ -4,11 +4,11 @@ import crypto from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const all=new Map();
-for(const p of ['windows/App/obj/project.assets.json','macos/obj/project.assets.json']) {
+for(const p of ['windows/Desktop/obj/project.assets.json','macos/obj/project.assets.json']) {
   const a=JSON.parse(fs.readFileSync(path.join(root,p),'utf8'));
   for(const[k,v]of Object.entries(a.libraries)) if(v.type==='package') all.set(k,{...v,folders:Object.keys(a.packageFolders)});
 }
-const cache=Object.keys(JSON.parse(fs.readFileSync(path.join(root,'windows/App/obj/project.assets.json'),'utf8')).packageFolders)[0];
+const cache=Object.keys(JSON.parse(fs.readFileSync(path.join(root,'windows/Desktop/obj/project.assets.json'),'utf8')).packageFolders)[0];
 for(const folder of ['microsoft.netcore.app.runtime.win-x64','microsoft.windowsdesktop.app.runtime.win-x64','microsoft.netcore.app.runtime.osx-arm64','microsoft.netcore.app.runtime.osx-x64']) {
   const p=path.join(cache,folder,'10.0.11');
   if(fs.existsSync(p))all.set(`${folder}/10.0.11`,{path:folder+'/10.0.11',folders:[cache]});

@@ -1,4 +1,5 @@
 using System.Xml.Linq;
+using AiLight.Core;
 namespace AiLight.Mac;
 
 public static class StartupService
@@ -9,13 +10,13 @@ public static class StartupService
         new XElement("key", "ProgramArguments"), new XElement("array", new XElement("string", exe), new XElement("string", "--background")),
         new XElement("key", "RunAtLoad"), new XElement("true"),
         new XElement("key", "LimitLoadToSessionType"), new XElement("string", "Aqua")))).ToString();
-    public static bool IsEnabled(Preferences p)
+    public static bool IsEnabled(DesktopPreferences p)
     {
         try { return File.Exists(PathName) && new FileInfo(PathName).LinkTarget is null && new FileInfo(PathName).Length < 16384 && File.ReadAllText(PathName) == p.StartupRegistration && p.StartupRegistration.Length > 0; }
         catch (IOException) { return false; }
         catch (UnauthorizedAccessException) { return false; }
     }
-    public static void Change(Preferences p, bool enable)
+    public static void Change(DesktopPreferences p, bool enable)
     {
         if (enable && Environment.GetEnvironmentVariable("AI_LIGHT_MAC_TEST_ROOT") is null && Installer.Bundle is null)
             throw new InvalidOperationException("Otomatik başlatma için yayınlanmış .app paketini kullan.");

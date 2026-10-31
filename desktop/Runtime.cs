@@ -3,11 +3,11 @@ using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Threading;
 using AiLight.Core;
 using Activity = AiLight.Core.Activity;
-namespace AiLight.Mac;
+namespace AiLight.Desktop;
 
 public sealed class Runtime(bool preview) : IDisposable
 {
-    public Preferences Preferences { get; } = preview ? new() : Storage.Load();
+    public DesktopPreferences Preferences { get; } = preview ? new() : Storage.Load();
     public StateEngine Engine { get; } = new();
     public SessionCatalog Titles { get; } = new(() => Path.Combine(Path.GetDirectoryName(Integrations.ConfigPath("codex"))!, "session_index.jsonl"));
     public DiagnosticJournal Diagnostics { get; } = new(!preview,
@@ -71,7 +71,7 @@ public sealed class Runtime(bool preview) : IDisposable
         else
         {
             Titles.Initialize();
-            if(Preferences.StartAtLogin && StartupService.IsEnabled(Preferences) && Preferences.StartupRegistration!=StartupService.Content(Storage.Exe)) {
+            if(Installer.IsInstalled && Preferences.StartAtLogin && StartupService.IsEnabled(Preferences) && Preferences.StartupRegistration!=StartupService.Content(Storage.Exe)) {
                 try{StartupService.Change(Preferences,true);}catch(Exception e){Notice="Giriş kaydı onarılamadı: "+e.Message;}
             }
             try { Storage.Save("sessions.json", Array.Empty<Session>()); } catch (Exception e) when (e is IOException or UnauthorizedAccessException) { Notice = "Oturum geçmişi temizlenemedi: " + e.Message; }
@@ -84,7 +84,7 @@ public sealed class Runtime(bool preview) : IDisposable
                     catch (Exception e) { Notice = HarnessCatalog.Label(family) + ": " + e.Message; }
                 }
             }
-            _ = Bridge.Listen(Program.Listener!, text => Dispatcher.UIThread.Post(() => Receive(text)), stop.Token);
+            _ = DesktopEnvironment.Platform.Listen(text => Dispatcher.UIThread.Post(() => Receive(text)), stop.Token);
             approvalWatcher = new CodexApprovalWatcher();
             approvalTask = approvalWatcher.Run((session, outcome) => Dispatcher.UIThread.Post(() => ResolveAutomaticPermission(session, outcome)), stop.Token,
                 started: session => Dispatcher.UIThread.Post(() => { permissionGate.ReviewStarted(session, DateTime.UtcNow); Tick(); }));
@@ -211,6 +211,6 @@ public sealed class Runtime(bool preview) : IDisposable
         observed.Reset(family); _ = CheckConnections(true); Tick();
     }
     public void Show() { Window.Show(); Window.WindowState = Avalonia.Controls.WindowState.Normal; Window.Activate(); Tick(); }
-    public async void Exit() { if (Exiting) return; Exiting = true; Persist(); timer.Stop(); testExpiryTimer.Stop(); permissionGraceTimer.Stop(); stop.Cancel(); Program.Listener?.Dispose(); Record("Exit"); await Task.WhenAny(Diagnostics.Complete(), Task.Delay(2000)); if (approvalTask is not null) await Task.WhenAny(approvalTask, Task.Delay(2000)); if (worker is not null) await Task.WhenAny(worker, Task.Delay(2000)); if (Avalonia.Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime app) app.Shutdown(); }
+    public async void Exit() { if (Exiting) return; Exiting = true; Persist(); timer.Stop(); testExpiryTimer.Stop(); permissionGraceTimer.Stop(); stop.Cancel(); Record("Exit"); await Task.WhenAny(Diagnostics.Complete(), Task.Delay(2000)); if (approvalTask is not null) await Task.WhenAny(approvalTask, Task.Delay(2000)); if (worker is not null) await Task.WhenAny(worker, Task.Delay(2000)); if (Avalonia.Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime app) app.Shutdown(); }
     public void Dispose() { stop.Cancel(); timer.Stop(); testExpiryTimer.Stop(); permissionGraceTimer.Stop(); _ = Diagnostics.Complete(); }
 }

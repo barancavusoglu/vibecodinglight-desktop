@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <Import Project="../Version.props"/>
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable><ImplicitUsings>enable</ImplicitUsings><LangVersion>latest</LangVersion>
+    <AssemblyName>VibeCodingLight.Desktop</AssemblyName><Product>VibeCodingLight</Product>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Avalonia.Desktop" Version="11.3.9"/>
+    <PackageReference Include="Avalonia.Themes.Fluent" Version="11.3.9"/>
+    <PackageReference Include="Tmds.DBus.Protocol" Version="0.21.3"/>
+    <ProjectReference Include="../windows/Core/AiLight.Core.csproj"/>
+    <InternalsVisibleTo Include="VibeCodingLight"/>
+    <InternalsVisibleTo Include="AI Light"/>
+  </ItemGroup>
+</Project>

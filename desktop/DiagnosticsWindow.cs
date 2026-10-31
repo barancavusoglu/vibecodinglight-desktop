@@ -5,7 +5,7 @@ using Avalonia.Layout;
 using Avalonia.Media;
 using Avalonia.Threading;
 using AiLight.Core;
-namespace AiLight.Mac;
+namespace AiLight.Desktop;
 
 public sealed class DiagnosticsWindow : Window
 {
@@ -17,7 +17,7 @@ public sealed class DiagnosticsWindow : Window
     public DiagnosticsWindow(Runtime runtime)
     {
         diagnostics = runtime.Diagnostics; Title = "VibeCodingLight · Tanı günlüğü"; Width = 760; Height = 600; MinWidth = 520; MinHeight = 400; WindowStartupLocation = WindowStartupLocation.CenterOwner;
-        var palette = MacThemes.Palette(runtime.Preferences.Theme); Background = Brush(palette[0]); Foreground = Brush(palette[1]);
+        var palette = DesktopThemes.Palette(runtime.Preferences.Theme); Background = Brush(palette[0]); Foreground = Brush(palette[1]);
         var root = new DockPanel { Margin = new Thickness(20) }; var header = new StackPanel { Spacing = 8, Margin = new Thickness(0, 0, 0, 12) };
         header.Children.Add(Text("Işık neden renk değiştirdi?", 20)); header.Children.Add(Text("Son 500 olay · yalnızca bu bilgisayarda. Mesaj, komut, cevap, başlık ve klasör içerikleri kaydedilmez. Kimlikler kısa özetlerle gösterilir."));
         header.Children.Add(Text("PermissionRequest bir izin değerlendirmesidir; otomatik onay mı, gerçek kullanıcı onayı mı bu olaydan kesin bilinmez. Renkler hedef durumdur; bağlantı ve test bilgisi ayrıca yazılır.")); DockPanel.SetDock(header, Dock.Top); root.Children.Add(header);

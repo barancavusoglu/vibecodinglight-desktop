@@ -2,18 +2,7 @@ using System.Text.Json;
 using System.Security.Cryptography;
 using AiLight.Core;
 namespace AiLight.Mac;
-public sealed class Preferences {
-    public int Brightness { get; set; } = 65;
-    public bool IdleAutoOffEnabled { get; set; }
-    public int IdleAutoOffMinutes { get; set; } = 30;
-    public string Theme { get; set; } = DesktopThemes.Default;
-    public bool StartAtLogin { get; set; }
-    public string StartupRegistration { get; set; } = "";
-    public bool AutoCheckUpdates { get; set; } = true;
-    public string Port { get; set; } = "";
-    public string DeviceId { get; set; } = "";
-    public Dictionary<string, List<string>> OwnedCommands { get; set; } = [];
-}
+public sealed class Preferences : DesktopPreferences { }
 public static class Storage {
     public static string Home => Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
     public static string Root => Environment.GetEnvironmentVariable("AI_LIGHT_MAC_TEST_ROOT") ?? Path.Combine(Home, "Library", "Application Support", "VibeCodingLight");

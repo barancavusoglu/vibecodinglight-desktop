@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using AiLight.Core;
 namespace AiLight.Mac;
 
 public static class Installer
@@ -16,12 +17,12 @@ public static class Installer
         var start = new ProcessStartInfo("/bin/bash") { UseShellExecute = false }; start.ArgumentList.Add(script); start.ArgumentList.Add(source);
         Process.Start(start);
     }
-    internal static void RemoveRegistrations(Preferences p) {
+    internal static void RemoveRegistrations(DesktopPreferences p) {
         foreach(string family in AiLight.Core.HarnessCatalog.Families)
             if(p.OwnedCommands.GetValueOrDefault(family)?.Count>0)Integrations.Change(p,family,false);
         if(p.StartupRegistration.Length>0)StartupService.Change(p,false);
     }
-    public static void Uninstall(Preferences p) {
+    public static void Uninstall(DesktopPreferences p) {
         if(!IsInstalled || Bundle is not {} bundle)throw new InvalidOperationException("Bu uygulama henüz kurulu değil.");
         using(var reader=System.Xml.XmlReader.Create(Path.Combine(bundle,"Contents","Info.plist"),new System.Xml.XmlReaderSettings{DtdProcessing=System.Xml.DtdProcessing.Ignore,XmlResolver=null})) {
             var dict=System.Xml.Linq.XDocument.Load(reader).Root?.Element("dict");

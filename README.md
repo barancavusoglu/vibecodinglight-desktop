@@ -32,6 +32,8 @@ Prefer a manual download? Get the Windows ZIP from [Releases](https://github.com
 
 **Windows x64 beta is available.** macOS is a source preview; a downloadable Mac app is not available yet.
 
+Windows and macOS share the same interface, themes and application logic. Device access and installation use native platform adapters.
+
 ## Inside the app
 
 <table>

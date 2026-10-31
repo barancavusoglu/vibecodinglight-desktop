@@ -91,9 +91,9 @@ public static class SmokeTest {
             if (Storage.Load().Brightness != 30) throw new Exception("Brightness persistence failed");
             if (!Storage.Load().IdleAutoOffEnabled || Storage.Load().IdleAutoOffMinutes != 30) throw new Exception("Idle auto-off persistence failed");
             if (Storage.Load().Theme != DesktopThemes.Default) throw new Exception("Default theme failed");
-            foreach (var theme in Themes.All.Concat(new[] { "ocean", "lavender" })) {
+            foreach (var theme in DesktopThemes.All.Concat(new[] { "ocean", "lavender" })) {
                 Storage.Save("settings.json", new Preferences { Brightness = 37, Theme = theme });
-                if (Storage.Load().Theme != Themes.Normalize(theme) || Storage.Load().Brightness != 30) throw new Exception("Theme persistence failed");
+                if (Storage.Load().Theme != DesktopThemes.Normalize(theme) || Storage.Load().Brightness != 30) throw new Exception("Theme persistence failed");
             }
             Storage.Save("settings.json", new Preferences { Theme = "invalid" });
             if (Storage.Load().Theme != DesktopThemes.Default) throw new Exception("Invalid theme fallback failed");

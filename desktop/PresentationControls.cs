@@ -6,7 +6,7 @@ using Avalonia.Media.Imaging;
 using Avalonia.Platform;
 using System.Runtime.InteropServices;
 
-namespace AiLight.Mac;
+namespace AiLight.Desktop;
 
 // Platform-independent layout and drawing; no device or integration access.
 public sealed class AdaptiveCardPanel : Panel

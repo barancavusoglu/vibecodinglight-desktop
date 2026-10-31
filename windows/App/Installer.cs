@@ -63,7 +63,7 @@ public static class Installer {
             var temp = Path.Combine(Path.GetTempPath(), "ai-light-uninstall-" + Guid.NewGuid().ToString("N") + ".exe");
             File.Copy(Storage.Exe, temp);
             Process.Start(new ProcessStartInfo(temp, "--remove-installed " + Environment.ProcessId) { UseShellExecute = false, CreateNoWindow = true });
-        } catch (Exception ex) { System.Windows.MessageBox.Show("Kaldırma tamamlanamadı: " + ex.Message, "VibeCodingLight"); }
+        } catch (Exception ex) { System.Windows.Forms.MessageBox.Show("Kaldırma tamamlanamadı: " + ex.Message, "VibeCodingLight"); }
     }
     public static void RemoveInstalled(int pid) {
         try { using var old = Process.GetProcessById(pid); old.WaitForExit(10000); } catch { }

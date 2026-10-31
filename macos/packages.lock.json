@@ -2,28 +2,6 @@
   "version": 1,
   "dependencies": {
     "net10.0": {
-      "Avalonia.Desktop": {
-        "type": "Direct",
-        "requested": "[11.3.9, )",
-        "resolved": "11.3.9",
-        "contentHash": "zOHbAssjjLz85a2RONK2UMfV/uqMtot9lxcUrSrwa3SneEm8ALeg6Pewc0u/YqvVRI5pyTm4HCtN9w5yRK0uZg==",
-        "dependencies": {
-          "Avalonia": "11.3.9",
-          "Avalonia.Native": "11.3.9",
-          "Avalonia.Skia": "11.3.9",
-          "Avalonia.Win32": "11.3.9",
-          "Avalonia.X11": "11.3.9"
-        }
-      },
-      "Avalonia.Themes.Fluent": {
-        "type": "Direct",
-        "requested": "[11.3.9, )",
-        "resolved": "11.3.9",
-        "contentHash": "XSgQxSRKgK/yNhkKa1rGuEUDISi+VNxwoj1pq4JUhFd1XXk/dqGsc4MfESItwTyGEYJH+HDbWfWEPVDDxAfUJg==",
-        "dependencies": {
-          "Avalonia": "11.3.9"
-        }
-      },
       "System.IO.Ports": {
         "type": "Direct",
         "requested": "[10.0.0, )",
@@ -59,6 +37,18 @@
         "resolved": "11.3.2",
         "contentHash": "qHDToxto1e3hci5YqbG9n0Ty8mlp3zBUN5wT66wKqaDVzXyQ0do3EnRILd4Ke9jpvsktaPpgE0YjEk7hornryQ=="
       },
+      "Avalonia.Desktop": {
+        "type": "Transitive",
+        "resolved": "11.3.9",
+        "contentHash": "zOHbAssjjLz85a2RONK2UMfV/uqMtot9lxcUrSrwa3SneEm8ALeg6Pewc0u/YqvVRI5pyTm4HCtN9w5yRK0uZg==",
+        "dependencies": {
+          "Avalonia": "11.3.9",
+          "Avalonia.Native": "11.3.9",
+          "Avalonia.Skia": "11.3.9",
+          "Avalonia.Win32": "11.3.9",
+          "Avalonia.X11": "11.3.9"
+        }
+      },
       "Avalonia.FreeDesktop": {
         "type": "Transitive",
         "resolved": "11.3.9",
@@ -93,6 +83,14 @@
           "SkiaSharp": "2.88.9",
           "SkiaSharp.NativeAssets.Linux": "2.88.9",
           "SkiaSharp.NativeAssets.WebAssembly": "2.88.9"
+        }
+      },
+      "Avalonia.Themes.Fluent": {
+        "type": "Transitive",
+        "resolved": "11.3.9",
+        "contentHash": "XSgQxSRKgK/yNhkKa1rGuEUDISi+VNxwoj1pq4JUhFd1XXk/dqGsc4MfESItwTyGEYJH+HDbWfWEPVDDxAfUJg==",
+        "dependencies": {
+          "Avalonia": "11.3.9"
         }
       },
       "Avalonia.Win32": {
@@ -285,6 +283,15 @@
       },
       "ailight.core": {
         "type": "Project"
+      },
+      "VibeCodingLight.Desktop": {
+        "type": "Project",
+        "dependencies": {
+          "AiLight.Core": "[0.1.52, )",
+          "Avalonia.Desktop": "[11.3.9, )",
+          "Avalonia.Themes.Fluent": "[11.3.9, )",
+          "Tmds.DBus.Protocol": "[0.21.3, )"
+        }
       }
     }
   }

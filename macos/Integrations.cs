@@ -22,8 +22,8 @@ public static class Integrations {
     public static bool Matches(string text, string family) => family == "opencode" ? text == Plugin(Storage.Exe)
         : HarnessCatalog.IsPreview(family) ? ProviderHooks.Installed(text,Command(Storage.Exe,family),family,false)
         : HookConfig.IsInstalled(text,Command(Storage.Exe,family),family);
-    public static bool Installed(Preferences p, string family) => ConnectionHealth.Check(family,true).Healthy;
-    public static void Change(Preferences p, string family, bool install) {
+    public static bool Installed(DesktopPreferences p, string family) => ConnectionHealth.Check(family,true).Healthy;
+    public static void Change(DesktopPreferences p, string family, bool install) {
         string path = ConfigPath(family);
         Storage.PrivateDirectory(Storage.Root);
         using var installLock = new FileStream(Path.Combine(Storage.Root, "hooks-" + family + ".lock"), FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.None);

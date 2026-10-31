@@ -1,6 +1,6 @@
 using AiLight.Core;
 
-namespace AiLight.Mac;
+namespace AiLight.Desktop;
 
 // Temporary device output never changes session state. A real question/permission
 // interrupts brightness preview, matching the Windows application's behavior.

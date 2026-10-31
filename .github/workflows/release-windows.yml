@@ -34,7 +34,7 @@ jobs:
           if ($env:GITHUB_REF_NAME -ne "windows-v$version") { throw 'Release tag and source version do not match.' }
           dotnet restore windows/Tests/AiLight.Tests.csproj --locked-mode --configfile NuGet.Config
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          dotnet restore windows/App/AiLight.App.csproj --locked-mode --configfile NuGet.Config
+          dotnet restore windows/Desktop/AiLight.Desktop.Windows.csproj --locked-mode --configfile NuGet.Config
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           ./windows/build.ps1 -NoRestore
       - name: Package installer and license notices

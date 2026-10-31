@@ -1,0 +1,27 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType><TargetFramework>net10.0-windows10.0.19041.0</TargetFramework>
+    <UseWindowsForms>true</UseWindowsForms><Nullable>enable</Nullable><ImplicitUsings>enable</ImplicitUsings><LangVersion>latest</LangVersion>
+    <AssemblyName>AI Light</AssemblyName><Product>VibeCodingLight</Product><Company>VibeCodingLight</Company>
+    <ApplicationManifest>../App/app.manifest</ApplicationManifest><ApplicationIcon>../App/Assets/VibeCodingLight.ico</ApplicationIcon>
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier><SelfContained>true</SelfContained><PublishSingleFile>true</PublishSingleFile>
+    <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract><EnableCompressionInSingleFile>true</EnableCompressionInSingleFile>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../../desktop/AiLight.Desktop.csproj"/>
+    <PackageReference Include="System.IO.Ports" Version="10.0.0"/>
+    <Compile Include="../App/Bridge.cs" Link="Platform/Bridge.cs"/>
+    <Compile Include="../App/Storage.cs" Link="Platform/Storage.cs"/>
+    <Compile Include="../App/OpenCodeIntegration.cs" Link="Platform/OpenCodeIntegration.cs"/>
+    <Compile Include="../App/ConnectionHealth.cs" Link="Platform/ConnectionHealth.cs"/>
+    <Compile Include="../App/BluetoothRobot.cs" Link="Platform/BluetoothRobot.cs"/>
+    <Compile Include="../App/Installer.cs" Link="Platform/Installer.cs"/>
+    <Compile Include="../App/UpdateService.cs" Link="Platform/UpdateService.cs"/>
+    <Compile Include="../App/SmokeTest.cs" Link="Tests/SmokeTest.cs"/>
+    <Compile Include="../App/Diagnostics.cs" Link="Platform/Diagnostics.cs"/>
+    <Compile Include="../App/SessionTitles.cs" Link="Platform/SessionTitles.cs"/>
+    <Compile Include="../App/CodexApprovalWatcher.cs" Link="Platform/CodexApprovalWatcher.cs"/>
+    <Compile Include="../../shared/SerialRobotLink.cs" Link="Platform/SerialRobotLink.cs"/>
+    <EmbeddedResource Include="../App/opencode-plugin.js" LogicalName="AiLight.OpenCodePlugin"/>
+  </ItemGroup>
+</Project>

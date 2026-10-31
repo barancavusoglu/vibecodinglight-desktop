@@ -44,29 +44,14 @@ jobs:
         run: |
           dotnet restore windows/Tests/AiLight.Tests.csproj --locked-mode --configfile NuGet.Config
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          dotnet restore windows/App/AiLight.App.csproj --locked-mode --configfile NuGet.Config
+          dotnet restore windows/Desktop/AiLight.Desktop.Windows.csproj --locked-mode --configfile NuGet.Config
           exit $LASTEXITCODE
       - name: Build, regression tests and packaged transport checks
         shell: pwsh
         run: ./windows/build.ps1 -NoRestore
       - name: Offline responsive and theme checks
         shell: pwsh
-        run: |
-          $env:AI_LIGHT_DATA_DIR = Join-Path $PWD 'windows/dist/ci-preview-data'
-          $env:AI_LIGHT_TEST_PIPE = [guid]::NewGuid().ToString('N')
-          $exe = Join-Path $PWD 'windows/dist/portable/AI Light.exe'
-          foreach ($width in @(420, 755, 1440)) {
-            foreach ($tab in @(0, 1, 2)) {
-              $image = Join-Path $PWD "windows/dist/ci-$width-$tab.png"
-              $arguments = "--render-preview `"$image`" $tab --preview-size=${width}x900 --responsive-check --theme=night"
-              if ($tab -eq 2) { $arguments += ' --theme-check' }
-              if ($tab -eq 1) { $arguments += ' --connection-cards-check --verify-check' }
-              if ($tab -eq 2) { $arguments += ' --update-available-test' }
-              $process = Start-Process -FilePath $exe -ArgumentList $arguments -WindowStyle Hidden -PassThru
-              if (!$process.WaitForExit(30000)) { Stop-Process -Id $process.Id; throw 'Offline preview timed out.' }
-              if ($process.ExitCode -ne 0 -or !(Test-Path -LiteralPath $image)) { throw 'Offline preview failed.' }
-            }
-          }
+        run: ./windows/check-ui.ps1
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: windows-development-build

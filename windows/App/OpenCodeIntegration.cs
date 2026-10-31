@@ -19,7 +19,7 @@ public static class OpenCodeIntegration {
         try { return File.ReadAllText(PluginPath) == Content(); } catch { return false; }
     }
     public static bool Matches(string content) => content == Content();
-    public static void Change(Preferences p, bool install) {
+    public static void Change(DesktopPreferences p, bool install) {
         using var mutex = new Mutex(false, "Local\\AiLight.HookConfig.opencode");
         if (!mutex.WaitOne(2000)) throw new IOException("Başka bir kurulum çalışıyor.");
         try {
