@@ -14,6 +14,10 @@ public static class Program {
         DesktopEnvironment.Platform = platform;
         Arguments = args;
         Preview = args.Contains("--preview");
+        if (args.FirstOrDefault() == "--version") {
+            Console.WriteLine(System.Reflection.CustomAttributeExtensions.GetCustomAttribute<System.Reflection.AssemblyInformationalVersionAttribute>(typeof(Program).Assembly)?.InformationalVersion);
+            return 0;
+        }
         if (platform.HandleCommand(args) is int commandResult) return commandResult;
         if (!Preview && (platform.IsMacOS ? !OperatingSystem.IsMacOS() : !OperatingSystem.IsWindows())) {
             Console.Error.WriteLine($"Bu paket {platform.Name} içindir."); return 1;

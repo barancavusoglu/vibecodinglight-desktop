@@ -2,7 +2,7 @@ name: CI
 
 on:
   push:
-    branches: [main, cross-platform-parity]
+    branches: [main, cross-platform-parity, 'codex/**']
   pull_request:
   workflow_dispatch:
 
@@ -98,6 +98,9 @@ jobs:
       - name: Build Apple Silicon development bundle
         run: |
           bash macos/build.sh arm64
+          archives=(macos/dist/VibeCodingLight-macos-arm64-*.zip)
+          [[ ${#archives[@]} -eq 1 ]] || exit 1
+          bash scripts/package-macos.sh "${archives[0]}"
           shasum -a 256 macos/dist/VibeCodingLight-macos-arm64-*.zip > macos/dist/macos-development.sha256
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:

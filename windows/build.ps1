@@ -8,6 +8,11 @@ try {
     if ($LASTEXITCODE -ne 0) { throw 'Durum ve hook testleri başarısız.' }
     dotnet publish Desktop/AiLight.Desktop.Windows.csproj -c Release -r win-x64 --self-contained true -o dist/portable @restoreArgs
     if ($LASTEXITCODE -ne 0) { throw 'Windows yayını derlenemedi.' }
+    $versionReport = Join-Path $PSScriptRoot 'dist/version-result.txt'
+    $versionCheck = Start-Process -FilePath (Join-Path $PSScriptRoot 'dist/portable/AI Light.exe') -ArgumentList '--version' -WindowStyle Hidden -PassThru -RedirectStandardOutput $versionReport
+    if (!$versionCheck.WaitForExit(10000)) { Stop-Process -Id $versionCheck.Id; throw 'Version check timed out.' }
+    $expectedVersion = (Get-Item -LiteralPath (Join-Path $PSScriptRoot 'dist/portable/AI Light.exe')).VersionInfo.ProductVersion
+    if ($versionCheck.ExitCode -ne 0 -or (Get-Content -Raw -LiteralPath $versionReport).Trim() -ne $expectedVersion) { throw 'Shared application version does not match its native package.' }
     $smokeReport = Join-Path $PSScriptRoot 'smoke-result.txt'
     $smoke = Start-Process -FilePath (Join-Path $PSScriptRoot 'dist/portable/AI Light.exe') -ArgumentList "--integration-smoke `"$smokeReport`"" -WindowStyle Hidden -PassThru
     if (!$smoke.WaitForExit(60000)) { throw 'Hook kabuk testi zaman aşımına uğradı.' }

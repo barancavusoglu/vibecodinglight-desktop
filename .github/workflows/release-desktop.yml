@@ -1,0 +1,172 @@
+name: Prepare desktop draft releases
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version from Version.props (for example, 0.1.53)'
+        required: true
+        type: string
+      platform:
+        description: Packages to prepare
+        required: true
+        type: choice
+        default: both
+        options: [both, windows, macos]
+      create_drafts:
+        description: 'Create draft releases after all selected builds pass'
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+
+env:
+  DOTNET_CLI_TELEMETRY_OPTOUT: 1
+  AVALONIA_TELEMETRY_OPTOUT: 1
+
+concurrency:
+  group: desktop-release-${{ inputs.version }}
+  cancel-in-progress: false
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          persist-credentials: false
+      - name: Validate source version and release branch
+        id: version
+        env:
+          REQUESTED_VERSION: ${{ inputs.version }}
+          CREATE_DRAFTS: ${{ inputs.create_drafts }}
+        run: |
+          python3 - <<'PY'
+          import os, re, xml.etree.ElementTree as ET
+          version = ET.parse('Version.props').findtext('./PropertyGroup/Version')
+          if not re.fullmatch(r'[0-9]+\.[0-9]+\.[0-9]+', os.environ['REQUESTED_VERSION']):
+              raise SystemExit('Use a version such as 0.1.53.')
+          if version != os.environ['REQUESTED_VERSION']:
+              raise SystemExit('Requested version and Version.props do not match.')
+          if os.environ['CREATE_DRAFTS'] == 'true' and os.environ['GITHUB_REF'] != 'refs/heads/main':
+              raise SystemExit('Draft releases must be prepared from main.')
+          with open(os.environ['GITHUB_OUTPUT'], 'a') as f:
+              f.write('version=' + version + '\n')
+          PY
+
+  windows:
+    needs: validate
+    if: inputs.platform == 'both' || inputs.platform == 'windows'
+    runs-on: windows-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          persist-credentials: false
+      - uses: actions/setup-dotnet@26b0ec14cb23fa6904739307f278c14f94c95bf1 # v5
+        with:
+          global-json-file: global.json
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        with:
+          node-version: 24
+      - name: Build and validate Windows package
+        shell: pwsh
+        run: |
+          ./windows/build.ps1
+          ./windows/check-ui.ps1
+          ./scripts/package-windows.ps1
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: windows-release-candidate
+          path: |
+            windows/dist/releases/*.zip
+            windows/dist/releases/*.sha256
+            windows/dist/releases/windows-release.json
+          if-no-files-found: error
+          retention-days: 14
+
+  macos:
+    needs: validate
+    if: inputs.platform == 'both' || inputs.platform == 'macos'
+    runs-on: macos-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          persist-credentials: false
+      - uses: actions/setup-dotnet@26b0ec14cb23fa6904739307f278c14f94c95bf1 # v5
+        with:
+          global-json-file: global.json
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        with:
+          node-version: 24
+      - name: Build and validate Apple Silicon package
+        run: |
+          bash macos/build.sh arm64
+          bash macos/check-ui.sh
+          dotnet build tests/macos-serial/SerialSmoke.csproj -c Release
+          python3 tests/macos-serial/run.py "$(command -v dotnet)" "$PWD/tests/macos-serial/bin/Release/net10.0/SerialSmoke.dll"
+          node windows/Tests/opencode.test.mjs "$PWD/macos/bin/Release/net10.0/VibeCodingLight" mac
+          archives=(macos/dist/VibeCodingLight-macos-arm64-*.zip)
+          [[ ${#archives[@]} -eq 1 ]] || { echo 'Expected exactly one fresh Mac build.' >&2; exit 1; }
+          bash scripts/package-macos.sh "${archives[0]}"
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: macos-release-candidate
+          path: macos/dist/releases/*
+          if-no-files-found: error
+          retention-days: 14
+
+  drafts:
+    needs: [validate, windows, macos]
+    if: >-
+      always() && inputs.create_drafts && needs.validate.result == 'success' &&
+      (needs.windows.result == 'success' || needs.windows.result == 'skipped') &&
+      (needs.macos.result == 'success' || needs.macos.result == 'skipped')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      actions: read
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+      VERSION: ${{ needs.validate.outputs.version }}
+      PLATFORM: ${{ inputs.platform }}
+    steps:
+      - name: Create drafts with verified packages
+        run: |
+          set -euo pipefail
+          platforms=()
+          [[ "$PLATFORM" == macos ]] || platforms+=(windows)
+          [[ "$PLATFORM" == windows ]] || platforms+=(macos)
+          # Refuse existing releases before creating any of the selected drafts.
+          for platform in "${platforms[@]}"; do
+            if gh release view "$platform-v$VERSION" >/dev/null 2>&1; then
+              echo "Release $platform-v$VERSION already exists; it was preserved." >&2
+              exit 1
+            fi
+            tag_sha="$(gh api "repos/$GH_REPO/commits/$platform-v$VERSION" --jq .sha 2>/dev/null || true)"
+            if [[ -n "$tag_sha" && "$tag_sha" != "$GITHUB_SHA" ]]; then
+              echo 'An existing tag points to a different source commit; it was preserved.' >&2
+              exit 1
+            fi
+          done
+          for platform in "${platforms[@]}"; do
+            dir="$RUNNER_TEMP/$platform-release"
+            gh run download "$GITHUB_RUN_ID" --name "$platform-release-candidate" --dir "$dir"
+            if [[ "$platform" == windows ]]; then
+              title="Windows $VERSION"
+              archive="$dir/VibeCodingLight-windows-v$VERSION-win-x64.zip"
+              printf 'VibeCodingLight for Windows x64.\n' > "$dir/notes.md"
+            else
+              title="macOS $VERSION"
+              archive="$dir/VibeCodingLight-macos-v$VERSION-macos-arm64.zip"
+              printf 'VibeCodingLight for Apple silicon Macs (macOS 14 or later).\n\nThis build is not Developer ID signed or notarized.\n' > "$dir/notes.md"
+            fi
+            gh release create "$platform-v$VERSION" --target "$GITHUB_SHA" --draft --title "$title" \
+              --notes-file "$dir/notes.md" "$archive" "$archive.sha256" "$dir/$platform-release.json"
+          done
+          printf 'Draft releases are ready. Review their files under Releases, then publish when ready.\n' >> "$GITHUB_STEP_SUMMARY"
