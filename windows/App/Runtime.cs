@@ -55,27 +55,28 @@ public sealed class Runtime : IDisposable {
     private DateTime nextConnectionCheck;
     public DateTime? LastConnectionCheck { get; private set; }
     public Dictionary<string, ConnectionCheck> Connections { get; } = [];
-    private readonly HashSet<string> observedConnections = [];
-    public bool HasObservedConnection(string family) => observedConnections.Contains(family);
+    private readonly ConnectionObservations observedConnections = new();
+    public bool HasObservedConnection(string family) => observedConnections.Has(family);
     public string HealthWarning => string.Join(", ", Connections.Values.Where(c => c.Enabled && !c.Healthy).Select(c => HarnessCatalog.Label(c.Family))) is { Length: > 0 } names ? names + " · kayıtları kontrol et / onar. Değişiklikten sonra ilgili uygulamayı veya CLI oturumunu tamamen kapatıp yeniden açman gerekebilir." : "";
     public string ConnectionStatus(string family) {
         if (!Connections.TryGetValue(family, out var check)) return "Kontrol bekleniyor";
         if (!check.Healthy) return check.Detail;
         return check.Detail + (HasObservedConnection(family) ? " · gerçek olay alındı" : " · gerçek olay bekleniyor. Güven onayını kontrol et; gerekirse ilgili uygulamayı veya CLI oturumunu tamamen kapatıp yeniden aç ve yeni oturumda mesaj gönder.");
     }
-    public void ResetConnectionObservation(string family) => observedConnections.Remove(family);
-    public Task CheckConnections() {
+    public void ResetConnectionObservation(string family) => observedConnections.Reset(family);
+    public Task CheckConnections(bool fresh = false) {
         if (offline || Exiting) return Task.CompletedTask;
-        return connectionCheck is { IsCompleted: false } ? connectionCheck : connectionCheck = CheckConnectionsCore();
+        if (connectionCheck is { IsCompleted: false } active) return fresh ? CheckAfter(active) : active;
+        return connectionCheck = CheckConnectionsCore();
     }
+    private async Task CheckAfter(Task active) { await active; await CheckConnections(); }
     private async Task CheckConnectionsCore() {
         var enabled = ConnectionHealth.Families.ToDictionary(f => f, f => Preferences.OwnedCommands.GetValueOrDefault(f)?.Count > 0);
         try {
             var checks = await Task.Run(() => ConnectionHealth.Families.Select(f => ConnectionHealth.Check(f, enabled[f])).ToArray());
             if (Exiting) return;
             foreach (var check in checks) {
-                if (Connections.TryGetValue(check.Family, out var old) && old.Fingerprint != check.Fingerprint)
-                    observedConnections.Remove(check.Family);
+                observedConnections.Checked(check.Family, check.Fingerprint);
                 Connections[check.Family] = check;
             }
             LastConnectionCheck = DateTime.Now;
@@ -137,6 +138,11 @@ public sealed class Runtime : IDisposable {
                 lock (gate) { rgb = desired; chosen = port; id = deviceId; brightness = effectBrightness; mode = outputMode; }
                 await device.TickAsync(chosen, id, rgb, brightness, mode, cancel.Token);
                 DeviceState = device.State;
+                if (DeviceState is { Connected: true, DeviceId.Length: > 0 } verified && verified.DeviceId != id)
+                    _ = System.Windows.Application.Current.Dispatcher.BeginInvoke(new Action(() => {
+                        if (Exiting || Preferences.Port != chosen || Preferences.DeviceId != id) return;
+                        Preferences.DeviceId = verified.DeviceId; SavePreferences();
+                    }));
                 try { await Task.Delay(50, cancel.Token); } catch (OperationCanceledException) { break; }
             }
         });
@@ -154,7 +160,7 @@ public sealed class Runtime : IDisposable {
     internal void Receive(string text) {
         if (text == "SHOW") { Show(); return; }
         if (text == "EXIT") { Exit(); return; }
-        try { var e = JsonSerializer.Deserialize<HookEvent>(text); if (e is not null) {
+        try { var e = HookWire.Read(text); if (e is not null) {
             if (e.Harness == "codex" && e.MonitorRoot.Length > 0) approvalWatcher?.ObserveRoot(e.MonitorRoot);
             string key = e.Harness + ":" + e.SessionId;
             var before = AiLight.App.Diagnostics.Capture(Engine, key);
@@ -164,7 +170,7 @@ public sealed class Runtime : IDisposable {
             if (permissionLightGate.Observe(e, alreadyPendingPermission, Engine, DateTime.UtcNow)) {
                 permissionGraceTimer.Stop(); permissionGraceTimer.Start();
             }
-            if (Engine.Sessions.Any(s => s.Key == key)) observedConnections.Add(e.Harness);
+            if (Engine.Sessions.Any(s => s.Key == key)) observedConnections.Observe(e.Harness);
             Diagnostics.Record(e.EventName, e.Harness, e.SessionId, before, AiLight.App.Diagnostics.Capture(Engine, key), Preferences.Brightness, Testing, DeviceConnected, e.ToolId, e.Correlation, e.TurnId, e.Source);
             Persist();
             if (Window.HookNoticeFamily == e.Harness) {
@@ -284,26 +290,12 @@ public sealed class Runtime : IDisposable {
     public void Dispose() { cancel.Cancel(); timer.Stop(); testExpiryTimer.Stop(); permissionGraceTimer.Stop(); tray?.Dispose(); trayIcon?.Dispose(); }
     [System.Runtime.InteropServices.DllImport("user32.dll")] private static extern bool DestroyIcon(IntPtr icon);
     private static Icon CreateIcon(OutputMode state) {
-        using var bitmap = new Bitmap(32, 32); using var g = Graphics.FromImage(bitmap);
-        g.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
-        using var tile = new SolidBrush(Color.FromArgb(40, 47, 37));
-        using var body = new SolidBrush(Color.FromArgb(245, 243, 236));
-        using var face = new SolidBrush(Color.FromArgb(38, 51, 40));
-        using var eye = new SolidBrush(state switch {
-            OutputMode.Red => Color.Tomato,
-            OutputMode.Green => Color.FromArgb(181, 230, 157),
-            OutputMode.Yellow => Color.Gold,
-            OutputMode.Blue => Color.CornflowerBlue,
-            _ => Color.Gray
-        });
-        g.FillRoundedRectangle(tile, new RectangleF(1, 1, 30, 30), 8.5f);
-        using (var antenna = new Pen(body, 2) { StartCap = System.Drawing.Drawing2D.LineCap.Round, EndCap = System.Drawing.Drawing2D.LineCap.Round })
-            g.DrawLine(antenna, 16, 5.5f, 16, 9);
-        g.FillEllipse(eye, 14.5f, 3.5f, 3, 3);
-        g.FillRoundedRectangle(body, new RectangleF(4, 9, 24, 18), 7.5f);
-        g.FillRoundedRectangle(face, new RectangleF(6.5f, 11.5f, 19, 13), 5);
-        g.FillRoundedRectangle(eye, new RectangleF(10.5f, 15.5f, 4, 5.5f), 2);
-        g.FillRoundedRectangle(eye, new RectangleF(17.5f, 15.5f, 4, 5.5f), 2);
+        using var bitmap = new Bitmap(32,32,System.Drawing.Imaging.PixelFormat.Format32bppArgb);
+        var data=bitmap.LockBits(new Rectangle(0,0,32,32),System.Drawing.Imaging.ImageLockMode.WriteOnly,System.Drawing.Imaging.PixelFormat.Format32bppArgb);
+        try {
+            var pixels=RobotIcon.Pixels(state);
+            for(int y=0;y<32;y++)System.Runtime.InteropServices.Marshal.Copy(pixels,y*128,data.Scan0+y*data.Stride,128);
+        } finally {bitmap.UnlockBits(data);}
         IntPtr handle = bitmap.GetHicon();
         try { using var icon = Icon.FromHandle(handle); return (Icon)icon.Clone(); }
         finally { DestroyIcon(handle); }

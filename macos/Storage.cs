@@ -6,7 +6,10 @@ public sealed class Preferences {
     public int Brightness { get; set; } = 65;
     public bool IdleAutoOffEnabled { get; set; }
     public int IdleAutoOffMinutes { get; set; } = 30;
-    public string Theme { get; set; } = "dark";
+    public string Theme { get; set; } = DesktopThemes.Default;
+    public bool StartAtLogin { get; set; }
+    public string StartupRegistration { get; set; } = "";
+    public bool AutoCheckUpdates { get; set; } = true;
     public string Port { get; set; } = "";
     public string DeviceId { get; set; } = "";
     public Dictionary<string, List<string>> OwnedCommands { get; set; } = [];
@@ -37,9 +40,11 @@ public static class Storage {
         } catch (Exception e) when (e is IOException or JsonException or UnauthorizedAccessException) { return default; }
     }
     public static Preferences Load() {
-        var p = Read<Preferences>("settings.json") ?? new(); p.Brightness = Math.Clamp(p.Brightness, 0, 100);
+        var p = Read<Preferences>("settings.json") ?? new(); p.Brightness = SettingSteps.BrightnessPercent(SettingSteps.BrightnessLevel(p.Brightness));
+        p.Port ??= ""; p.DeviceId ??= ""; p.OwnedCommands ??= [];
         p.IdleAutoOffMinutes = SettingSteps.NearestIdleMinutes(p.IdleAutoOffMinutes);
-        if (p.Theme is not ("dark" or "light")) p.Theme = "dark";
+        p.StartupRegistration ??= "";
+        p.Theme = MacThemes.Normalize(p.Theme);
         return p;
     }
     public static void Save(string name, object value) { PrivateDirectory(Root); Atomic(Path.Combine(Root, name), JsonSerializer.Serialize(value)); }
@@ -51,6 +56,10 @@ public static class Storage {
             if (!OperatingSystem.IsWindows()) File.SetUnixFileMode(temp, UnixFileMode.UserRead | UnixFileMode.UserWrite);
             File.Move(temp, path, true);
         } finally { if (File.Exists(temp)) File.Delete(temp); }
+    }
+    public static byte[]? CorrelationKey() {
+        try { return Key(); }
+        catch (Exception e) when (e is IOException or UnauthorizedAccessException) { return null; }
     }
     public static byte[] Key() {
         PrivateDirectory(Root); string path = Path.Combine(Root, "correlation.key");

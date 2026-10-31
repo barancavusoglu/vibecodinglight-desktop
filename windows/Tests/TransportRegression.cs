@@ -56,7 +56,7 @@ public static class TransportRegression {
             string connectedStatus = robot.Status;
             var bleLink = transition.Opened.Last();
             long generation = robot.Generation;
-            check(robot.State.Transport == DeviceTransport.Bluetooth && connectedStatus.StartsWith("Bluetooth bağlı"),
+            check(robot.State.Transport == DeviceTransport.Bluetooth && connectedStatus == "Robot Bluetooth üzerinden bağlı",
                 "USB removal and powerbank reconnect establish a healthy BLE status");
 
             transition.Usb = ["COM1"];
@@ -75,9 +75,54 @@ public static class TransportRegression {
                 "A real BLE failure still clears connected state and reports disconnection after a failed USB probe");
             transition.FailUsbOpen = transition.FailUsbInfo = false;
             await robot.TickAsync("", "", "SET_RGB 9 8 7", now.AddSeconds(12), timeout.Token);
-            check(robot.IsUsb && robot.Status.Contains("USB bağlı")
+            check(robot.IsUsb && robot.Status == "Robot USB üzerinden bağlı"
                 && transition.Opened.Last().Commands.SequenceEqual(new[] { "INFO", "SET_RGB 9 8 7" }),
                 "Recovered USB retains priority and replaces the status with the healthy USB connection");
+        }
+
+        var stalled = new Discovery { Usb = ["COM1"], Ble = ["BLE:A"] };
+        using (var recovering = new RobotConnection(stalled)) {
+            await recovering.TickAsync("", "", "SET_RGB 1 2 3", now, timeout.Token);
+            var lost = stalled.Opened.Single();
+            lost.ReleaseDispose = new(TaskCreationOptions.RunContinuationsAsynchronously);
+            lost.Fail = true; stalled.Usb = [];
+            try {
+                await recovering.TickAsync("", "", "SET_RGB 1 2 3", now.AddSeconds(3), timeout.Token).WaitAsync(TimeSpan.FromSeconds(1));
+                check(!recovering.State.Connected && recovering.State.Transport == DeviceTransport.None,
+                    "A stalled native USB close cannot retain a stale connected transport in either shell");
+                await recovering.TickAsync("", "", "SET_RGB 9 8 7", now.AddSeconds(4), timeout.Token).WaitAsync(TimeSpan.FromSeconds(1));
+                check(recovering.State.Transport == DeviceTransport.Bluetooth && stalled.BluetoothEnabled
+                    && stalled.Opened.Last().Commands.SequenceEqual(new[] { "INFO", "SET_RGB 9 8 7" }),
+                    "Bluetooth handshake and current output proceed even while an old USB close is stalled");
+                check(!recovering.State.Detail.Contains("COM1") && !recovering.State.Detail.Contains("/dev/"),
+                    "Connection presentation never exposes a serial path or hardware ID");
+            } finally { lost.ReleaseDispose.TrySetResult(true); }
+        }
+
+        var settling = new Discovery { Ble = ["BLE:A"], BluetoothDiscoveryReady = false };
+        using (var firstUse = new RobotConnection(settling)) {
+            await firstUse.TickAsync("", "", "SET_RGB 1 0 0", now, timeout.Token);
+            check(!firstUse.Connected && settling.Opened.Count == 0, "First automatic Bluetooth selection waits for the initial discovery window");
+            settling.Ble = ["BLE:A", "BLE:B"]; settling.BluetoothDiscoveryReady = true;
+            await firstUse.TickAsync("", "", "SET_RGB 1 0 0", now.AddSeconds(3), timeout.Token);
+            check(!firstUse.Connected && settling.Opened.Count == 0 && firstUse.Status.Contains("cihaz seç"),
+                "A second robot discovered during the initial window prevents arbitrary first-device selection");
+        }
+        var remembered = new Discovery { Ble = ["BLE:A"] };
+        using (var robot = new RobotConnection(remembered)) {
+            await robot.TickAsync("", "", "SET_RGB 1 0 0", now, timeout.Token);
+            var verified = robot.State; long generation = robot.Generation;
+            await robot.TickAsync("", verified.DeviceId, "SET_RGB 1 0 0", now.AddSeconds(1), timeout.Token);
+            check(verified.Address == "BLE:A" && verified.DeviceId == "001122AABBCC" && robot.Generation == generation && !remembered.Opened[0].Disposed,
+                "Verified address/identity can be remembered without interrupting an active connection");
+        }
+        var restored = new Discovery { Ble = ["BLE:OTHER", "BLE:OWN"] };
+        restored.InfoByAddress["BLE:OTHER"] = Info.Replace("001122AABBCC", "FFEEDDCCBBAA");
+        using (var robot = new RobotConnection(restored)) {
+            await robot.TickAsync("", "001122AABBCC", "SET_RGB 1 0 0", now, timeout.Token);
+            check(robot.Connected && robot.State.Address == "BLE:OWN" && restored.Opened[0].Commands.SequenceEqual(new[] { "INFO" })
+                && restored.Opened[0].Disposed && restored.Opened[1].Commands.Last() == "SET_RGB 1 0 0",
+                "Restored robot identity reconnects to its own device among two robots without controlling the other");
         }
 
         var multi = new Discovery { Ble = ["BLE:A", "BLE:B"] };
@@ -134,6 +179,8 @@ public static class TransportRegression {
         public string UsbInfo = Info, BleInfo = Info;
         public List<Link> Opened = [];
         public bool BluetoothEnabled, EverEnabled;
+        public bool BluetoothDiscoveryReady { get; set; } = true;
+        public Dictionary<string,string> InfoByAddress = [];
         public bool FailUsbOpen, FailUsbInfo;
         public void SetBluetoothEnabled(bool enabled) { BluetoothEnabled = enabled; EverEnabled |= enabled; }
         public string BluetoothStatus => "Bluetooth robotu aranıyor";
@@ -142,7 +189,7 @@ public static class TransportRegression {
         public Task<IRobotLink> OpenAsync(string address, CancellationToken stop) {
             stop.ThrowIfCancellationRequested();
             if (!address.StartsWith("BLE:") && FailUsbOpen) throw new UnauthorizedAccessException("port unavailable");
-            var link = new Link(address, address.StartsWith("BLE:") ? BleInfo : UsbInfo); Opened.Add(link);
+            var link = new Link(address, InfoByAddress.GetValueOrDefault(address, address.StartsWith("BLE:") ? BleInfo : UsbInfo)); Opened.Add(link);
             if (link.IsUsb && FailUsbInfo) link.Fail = true;
             return Task.FromResult<IRobotLink>(link);
         }
@@ -150,6 +197,7 @@ public static class TransportRegression {
     }
     sealed class Link(string address, string info) : IRobotLink {
         public List<string> Commands = [];
+        public TaskCompletionSource<bool>? ReleaseDispose;
         public bool Disposed, Fail;
         public string Address => address;
         public bool IsUsb => !address.StartsWith("BLE:");
@@ -158,6 +206,6 @@ public static class TransportRegression {
             if (Fail) throw new IOException("lost");
             return Task.FromResult(command == "INFO" ? info : command == "PING" ? "PONG" : "OK");
         }
-        public void Dispose() => Disposed = true;
+        public void Dispose() { ReleaseDispose?.Task.GetAwaiter().GetResult(); Disposed = true; }
     }
 }

@@ -1,6 +1,7 @@
 namespace AiLight.Core;
 
 public static class SettingSteps {
+    public static string DurationLabel(int minutes) => minutes < 60 ? minutes + " dakika" : minutes / 60 + " saat";
     public static readonly int[] IdleMinutes = [1, 5, 10, 15, 30, 60, 120, 240];
     public static readonly int[] BrightnessLevels = [15, 30, 50, 70, 85, 100];
     public static int BrightnessLevel(int percent) => Enumerable.Range(0, BrightnessLevels.Length).MinBy(i => Math.Abs((long)BrightnessLevels[i] - percent));

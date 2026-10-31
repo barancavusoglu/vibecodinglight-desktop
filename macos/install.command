@@ -2,7 +2,8 @@
 set -euo pipefail
 [[ "$(uname -s)" == Darwin ]] || { echo 'macOS required.' >&2; exit 1; }
 source_dir="$(cd "$(dirname "$0")" && pwd -P)"
-source_app="$source_dir/VibeCodingLight.app"
+source_app="${1:-$source_dir/VibeCodingLight.app}"
+source_app="$(cd "$source_app" && pwd -P)"
 [[ -d "$source_app" ]] || { echo 'Place this installer next to VibeCodingLight.app.' >&2; exit 1; }
 bundle_id=$(/usr/libexec/PlistBuddy -c 'Print :CFBundleIdentifier' "$source_app/Contents/Info.plist")
 [[ "$bundle_id" == com.vibecodinglight.desktop ]] || { echo 'Unexpected app bundle.' >&2; exit 1; }
@@ -15,6 +16,8 @@ target="$destination/VibeCodingLight.app"
 [[ "$source_app" != "$target" ]] || { /usr/bin/open "$target"; exit 0; }
 staging="$(mktemp -d "$destination/.ai-light-install-XXXXXX")"
 /usr/bin/ditto "$source_app" "$staging/VibeCodingLight.app"
+"$source_app/Contents/MacOS/VibeCodingLight" --quit || true
+sleep 2
 if [[ -e "$target" ]]; then
   existing_id=$(/usr/libexec/PlistBuddy -c 'Print :CFBundleIdentifier' "$target/Contents/Info.plist")
   [[ "$existing_id" == com.vibecodinglight.desktop ]] || { echo 'Existing unrelated app was preserved.' >&2; exit 1; }

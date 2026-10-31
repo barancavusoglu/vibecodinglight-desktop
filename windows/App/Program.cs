@@ -1,3 +1,4 @@
+using DiagnosticState = AiLight.Core.DiagnosticState;
 using System.IO;
 using System.Windows;
 using System.Windows.Media;

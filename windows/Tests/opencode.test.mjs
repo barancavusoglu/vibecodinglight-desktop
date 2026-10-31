@@ -1,8 +1,9 @@
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
+import { readFileSync, mkdtempSync, mkdirSync, rmSync } from "node:fs";
 import { createServer } from "node:net";
 import { randomUUID } from "node:crypto";
-import { resolve } from "node:path";
+import { resolve, join } from "node:path";
+import { tmpdir } from "node:os";
 import { spawn } from "node:child_process";
 import { fileURLToPath } from "node:url";
 const [exe, sid] = process.argv.slice(2);
@@ -10,7 +11,12 @@ assert.ok(exe && sid);
 const suffix = randomUUID();
 process.env.AI_LIGHT_TEST_PIPE = suffix;
 process.env.AI_LIGHT_DATA_DIR = resolve(".test-data", suffix);
-const pipe = "\\\\.\\pipe\\AiLight.v1." + sid + ".test." + suffix;
+const testRoot = process.platform === "win32" ? null : mkdtempSync(join(process.platform === "darwin" ? "/tmp" : tmpdir(), "vcl-opencode-"));
+if (testRoot) {
+  process.env.AI_LIGHT_MAC_TEST_ROOT = testRoot;
+  mkdirSync(join(testRoot, "ipc"), { mode: 0o700 });
+}
+const pipe = testRoot ? join(testRoot, "ipc", "events.sock") : "\\\\.\\pipe\\AiLight.v1." + sid + ".test." + suffix;
 const events = [];
 const server = createServer(socket => {
   let wire = "";
@@ -75,4 +81,7 @@ try {
   assert.equal(shutdown.ProducerId, events.find(e => e.SessionId === "exit-session").ProducerId);
   assert.notEqual(shutdown.ProducerId, events[0].ProducerId);
   console.log("PASS: packaged OpenCode transport: ordered lifecycle, privacy, 1000-event burst, alternate IDs, producer identity and real process-exit notification.");
-} finally { server.close(); }
+} finally {
+  await new Promise(resolve => server.close(resolve));
+  if (testRoot) rmSync(testRoot, { recursive: true, force: true });
+}

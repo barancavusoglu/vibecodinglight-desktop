@@ -29,16 +29,18 @@ public partial class MainWindow : Window {
         }
         RefreshBrightnessChoices();
         IdleAutoOff.IsChecked = runtime.Preferences.IdleAutoOffEnabled;
-        IdleAutoOffMinutes.ItemsSource = SettingSteps.IdleMinutes.Select(minutes => new DurationChoice(minutes, minutes < 60 ? minutes + " dakika" : minutes / 60 + " saat")).ToArray();
+        IdleAutoOffMinutes.ItemsSource = SettingSteps.IdleMinutes.Select(minutes => new DurationChoice(minutes, SettingSteps.DurationLabel(minutes))).ToArray();
         IdleAutoOffMinutes.SelectedValue = runtime.Preferences.IdleAutoOffMinutes;
         UpdateIdleAutoOffUi();
         Autostart.IsChecked = runtime.Preferences.StartAtLogin;
         AutoUpdates.IsChecked = runtime.Preferences.AutoCheckUpdates;
         InstallAppButton.Visibility = string.Equals(System.IO.Path.GetDirectoryName(Storage.Exe), Storage.InstallDir, StringComparison.OrdinalIgnoreCase) ? Visibility.Collapsed : Visibility.Visible;
+        UninstallAppButton.Visibility = InstallAppButton.Visibility == Visibility.Collapsed ? Visibility.Visible : Visibility.Collapsed;
         RefreshPorts(); ready = true; Refresh();
         Closing += (_, e) => { if (!runtime.Exiting) { e.Cancel = true; Hide(); } };
     }
     public void Refresh() {
+        RefreshPorts();
         var mode = runtime.CurrentLightMode;
         bool reviewing = runtime.PermissionReviewHeld;
         bool Checking(Session s) => LightPresentation.CheckingPermission(s, reviewing);
@@ -79,7 +81,7 @@ public partial class MainWindow : Window {
         }
         EmptyState.Visibility = sessions.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
         var deviceState = runtime.DeviceState;
-        DeviceText.Text = deviceState.Detail; DeviceDot.Fill = deviceState.Connected ? Brush("#6F9868") : Brush("#A9B0A9");
+        DeviceText.Text = deviceState.Summary; DeviceDot.Fill = deviceState.Connected ? Brush("#6F9868") : Brush("#A9B0A9");
         DeviceConnectionTitle.Text = deviceState.Connected ? "Cihaz bağlı" : "Cihaz bağlı değil";
         DeviceConnectedCheck.Visibility = deviceState.Connected ? Visibility.Visible : Visibility.Collapsed;
         DeviceConnectionType.Text = deviceState.Transport switch {
@@ -171,16 +173,18 @@ public partial class MainWindow : Window {
         IdleAutoOffMinutes.IsEnabled = IdleAutoOff.IsChecked == true;
     }
     private void RefreshPorts() {
+        if (PortSelector.IsDropDownOpen) return;
+        var choices = DevicePortChoice.Create(Device.Ports(), runtime.Preferences.Port, false, runtime.DeviceState.Address);
+        var selection = choices.First(c => c.Address == runtime.Preferences.Port);
+        if (PortSelector.ItemsSource is DevicePortChoice[] current && current.SequenceEqual(choices) && Equals(PortSelector.SelectedItem, selection)) return;
         bool wasReady = ready; ready = false;
-        PortSelector.ItemsSource = new[] { "Otomatik algıla" }.Concat(Device.Ports())
-            .Concat(runtime.Preferences.Port.Length > 0 ? new[] { runtime.Preferences.Port } : []).Distinct().ToArray();
-        PortSelector.SelectedItem = runtime.Preferences.Port.Length == 0 ? "Otomatik algıla" : runtime.Preferences.Port;
-        if (PortSelector.SelectedIndex < 0) PortSelector.SelectedIndex = 0;
+        PortSelector.ItemsSource = choices;
+        PortSelector.SelectedItem = selection;
         ready = wasReady;
     }
     private void Port_Changed(object sender, SelectionChangedEventArgs e) {
-        if (!ready) return;
-        runtime.Preferences.Port = PortSelector.SelectedIndex <= 0 ? "" : PortSelector.SelectedItem?.ToString() ?? "";
+        if (!ready || PortSelector.SelectedItem is not DevicePortChoice choice) return;
+        runtime.Preferences.Port = choice.Address;
         runtime.Preferences.DeviceId = ""; runtime.SavePreferences();
     }
     private void Scan_Click(object sender, RoutedEventArgs e) { RefreshPorts(); }
@@ -197,7 +201,7 @@ public partial class MainWindow : Window {
         VerifyResult.Text = "Hook kayıtları inceleniyor…";
         VerifyResult.SetResourceReference(System.Windows.Controls.TextBlock.ForegroundProperty, "Muted");
         try {
-            await Task.WhenAll(runtime.CheckConnections(), Task.Delay(450));
+            await Task.WhenAll(runtime.CheckConnections(true), Task.Delay(450));
             var checks = runtime.Connections.Values.Where(c => c.Enabled).ToArray();
             int problems = checks.Count(c => !c.Healthy);
             VerifyResult.Text = checks.Length == 0 ? "Kontrol tamamlandı · etkin entegrasyon yok. Aşağıdan bir araç etkinleştir."
@@ -222,7 +226,7 @@ public partial class MainWindow : Window {
         }
         catch (Exception ex) { Notice.Text = ex.Message; }
         runtime.ResetConnectionObservation(family);
-        _ = runtime.CheckConnections();
+        _ = runtime.CheckConnections(true);
     }
     private void ColorWheel_PreviewColorChanged(object? sender, ColorSelectedEventArgs e) {
         var color = System.Windows.Media.Color.FromRgb((byte)e.R, (byte)e.G, (byte)e.B);
@@ -268,6 +272,11 @@ public partial class MainWindow : Window {
         } catch (Exception ex) { UpdateStatus.Text = "İndirme sayfası açılamadı: " + ex.Message; }
         finally { updateBusy = false; UpdateButton.IsEnabled = true; }
     }
+    private void UninstallApp_Click(object sender, RoutedEventArgs e) {
+        if (System.Windows.MessageBox.Show(this,"VibeCodingLight hook'ları ve kendi başlangıç kaydı kaldırılacak. Ayarlar ve tanı verileri korunacak.","VibeCodingLight'ı kaldır",MessageBoxButton.YesNo)!=MessageBoxResult.Yes)return;
+        Installer.Uninstall();
+    }
+    private void Exit_Click(object sender, RoutedEventArgs e) => runtime.Exit();
     private void InstallApp_Click(object sender, RoutedEventArgs e) {
         try { Installer.StartInstall(); } catch (Exception ex) { Notice.Text = ex.Message; }
     }

@@ -16,6 +16,8 @@ public sealed class RobotDiscovery : IRobotDiscovery {
     private TaskCompletionSource<bool>? writing;
     private DeviceReplyBuffer? replies;
     private string bluetoothStatus = "Bluetooth robotu aranıyor";
+    private DateTime discoveryReadyAt = DateTime.MaxValue;
+    public bool BluetoothDiscoveryReady => DateTime.UtcNow >= discoveryReadyAt;
     public string BluetoothStatus => bluetoothStatus;
     public static string[] Ports() {
         string[] usb;
@@ -28,7 +30,7 @@ public sealed class RobotDiscovery : IRobotDiscovery {
     public void SetBluetoothEnabled(bool enabled) {
         if (!enabled) { StopHelper(); return; }
         if (helper is { HasExited: false }) return;
-        StopHelper();
+        StopHelper(); discoveryReadyAt = DateTime.MaxValue;
         string path = Path.Combine(AppContext.BaseDirectory, "VibeCodingLight.Bluetooth");
         if (!OperatingSystem.IsMacOS()) { bluetoothStatus = "Bluetooth yalnızca macOS üzerinde çalışır"; return; }
         if (!File.Exists(path)) { bluetoothStatus = "Bluetooth yardımcısı eksik · macOS build.sh ile derle"; return; }
@@ -58,7 +60,9 @@ public sealed class RobotDiscovery : IRobotDiscovery {
                     case "ready": connecting?.TrySetResult(true); break;
                     case "written": writing?.TrySetResult(true); break;
                     case "data": replies?.Feed(Convert.FromBase64String(value)); break;
-                    case "state": bluetoothStatus = value == "ready" ? "Bluetooth robotu aranıyor" : value; break;
+                    case "state":
+                        discoveryReadyAt = value == "ready" ? DateTime.UtcNow.AddSeconds(2) : DateTime.MaxValue;
+                        bluetoothStatus = value == "ready" ? "Bluetooth robotu aranıyor" : value; break;
                     case "error":
                     case "disconnected":
                         var error = new IOException(value.Length == 0 ? "Bluetooth bağlantısı kesildi" : value);

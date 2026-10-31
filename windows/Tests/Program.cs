@@ -4,6 +4,7 @@ using System.Text.Json.Nodes;
 int checks = 0;
 void Check(bool ok, string name) { if (!ok) throw new Exception("FAIL: " + name); checks++; Console.WriteLine("PASS " + name); }
 await UpdateChecks.Run(Check);
+await ParityRegression.Run(Check);
 long timestamp = 100;
 HookEvent E(string session, string name, string turn = "t1", string tool = "Bash", string toolId = "a", string harness = "codex") =>
     new(Guid.NewGuid().ToString(), harness, session, name, turn, toolId, tool, "project", "", false, timestamp++);

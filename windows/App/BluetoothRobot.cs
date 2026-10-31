@@ -18,6 +18,8 @@ public sealed class RobotDiscovery : IRobotDiscovery {
     private string bluetoothStatus = "Bluetooth robotu aranıyor";
     private DateTime nextRestart;
     private bool enabled;
+    private DateTime discoveryReadyAt = DateTime.MaxValue;
+    public bool BluetoothDiscoveryReady => DateTime.UtcNow >= discoveryReadyAt;
     public string BluetoothStatus => bluetoothStatus;
     public static string[] Ports() {
         string[] usb;
@@ -42,7 +44,7 @@ public sealed class RobotDiscovery : IRobotDiscovery {
         enabled = value;
         if (value) {
             if (watcher.Status is BluetoothLEAdvertisementWatcherStatus.Started or BluetoothLEAdvertisementWatcherStatus.Stopping) return;
-            try { watcher.Start(); bluetoothStatus = "Bluetooth robotu aranıyor"; }
+            try { watcher.Start(); discoveryReadyAt = DateTime.UtcNow.AddSeconds(2); bluetoothStatus = "Bluetooth robotu aranıyor"; }
             catch { bluetoothStatus = "Bluetooth kullanılamıyor · USB ile çalışmaya devam edebilirsin"; }
         } else { try { watcher.Stop(); } catch { } }
     }
@@ -66,7 +68,7 @@ public sealed class RobotDiscovery : IRobotDiscovery {
     public IReadOnlyList<string> BleCandidates() {
         if (enabled && DateTime.UtcNow >= nextRestart && watcher.Status is BluetoothLEAdvertisementWatcherStatus.Aborted or BluetoothLEAdvertisementWatcherStatus.Stopped) {
             nextRestart = DateTime.UtcNow.AddSeconds(3);
-            try { watcher.Start(); bluetoothStatus = "Bluetooth robotu aranıyor"; } catch { }
+            try { watcher.Start(); discoveryReadyAt = DateTime.UtcNow.AddSeconds(2); bluetoothStatus = "Bluetooth robotu aranıyor"; } catch { }
         }
         return CurrentBle();
     }

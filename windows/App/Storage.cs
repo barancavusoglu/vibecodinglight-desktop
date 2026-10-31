@@ -6,7 +6,7 @@ using Microsoft.Win32;
 namespace AiLight.App;
 
 public sealed class Preferences {
-    public string Theme { get; set; } = "sage";
+    public string Theme { get; set; } = DesktopThemes.Default;
     public int Brightness { get; set; } = 65;
     public bool IdleAutoOffEnabled { get; set; }
     public int IdleAutoOffMinutes { get; set; } = 30;
@@ -38,6 +38,7 @@ public static class Storage {
     public static Preferences Load() {
         var p = Read<Preferences>("settings.json") ?? new();
         p.Brightness = SettingSteps.BrightnessPercent(SettingSteps.BrightnessLevel(p.Brightness));
+        p.Port ??= ""; p.DeviceId ??= ""; p.OwnedCommands ??= [];
         p.IdleAutoOffMinutes = SettingSteps.NearestIdleMinutes(p.IdleAutoOffMinutes);
         p.Theme = Themes.Normalize(p.Theme);
         return p;

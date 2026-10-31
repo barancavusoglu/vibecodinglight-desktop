@@ -28,7 +28,7 @@ public static class Bridge {
             var (pid, started) = ProcessTree.FindOwner();
             var json = Encoding.UTF8.GetString(buffer.ToArray());
             var e = HarnessCatalog.IsPreview(family) ? ProviderHooks.Read(family, eventName, json, pid, started)
-                : EventReader.Read(family, json, pid, started, Storage.Key());
+                : EventReader.Read(family, json, pid, started, Storage.CorrelationKey());
             if (e is null) return;
             await Send(JsonSerializer.Serialize(e));
         } catch { /* Never prevent the harness operation. */ }

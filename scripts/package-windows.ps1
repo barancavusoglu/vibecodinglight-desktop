@@ -10,7 +10,7 @@ if (-not $IsWindows) { throw 'Windows is required to package the Windows applica
 $root = Split-Path $PSScriptRoot -Parent
 if (-not $InstallerPath) { $InstallerPath = Join-Path $root 'windows/dist/VibeCodingLight-Setup.exe' }
 if (-not $OutputDirectory) { $OutputDirectory = Join-Path $root 'windows/dist/releases' }
-[xml]$props = Get-Content -LiteralPath (Join-Path $root 'windows/Directory.Build.props')
+[xml]$props = Get-Content -LiteralPath (Join-Path $root 'Version.props')
 $version = [string]$props.Project.PropertyGroup.Version
 $commit = (& git -C $root rev-parse HEAD).Trim()
 if ($LASTEXITCODE -ne 0) { throw 'Cannot identify the source commit.' }

@@ -5,9 +5,10 @@
  <key>CFBundleName</key><string>VibeCodingLight</string>
  <key>CFBundleDisplayName</key><string>VibeCodingLight</string>
  <key>CFBundleExecutable</key><string>VibeCodingLight</string>
+ <key>CFBundleIconFile</key><string>VibeCodingLight.icns</string>
  <key>CFBundlePackageType</key><string>APPL</string>
- <key>CFBundleShortVersionString</key><string>0.1.6</string>
- <key>CFBundleVersion</key><string>0.1.6</string>
+ <key>CFBundleShortVersionString</key><string>0.1.52</string>
+ <key>CFBundleVersion</key><string>0.1.52</string>
  <key>NSBluetoothAlwaysUsageDescription</key><string>VibeCodingLight robotunun ışığını Bluetooth üzerinden kontrol etmek için kullanılır.</string>
  <key>LSMinimumSystemVersion</key><string>14.0</string>
  <key>LSUIElement</key><true/>

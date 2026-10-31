@@ -13,7 +13,38 @@ public static class SelfTest {
             Environment.SetEnvironmentVariable("OPENCODE_CONFIG_DIR", Path.Combine(root, "opencode"));
             Environment.SetEnvironmentVariable("COPILOT_HOME", Path.Combine(root, "copilot"));
             var prefs = new Preferences { Brightness = 37, Theme = "light" }; Storage.Save("settings.json", prefs);
-            Check(Storage.Load().Brightness == 37 && Storage.Load().Theme == "light", "macOS preferences roundtrip");
+            Check(Storage.Load().Brightness == 30 && Storage.Load().Theme == "light", "macOS preference migration matches Windows brightness steps");
+            foreach (string theme in MacThemes.All) {
+                prefs.Theme = theme; Storage.Save("settings.json", prefs);
+                Check(Storage.Load().Theme == theme, "Theme persists: " + theme);
+            }
+            Check(ColorWheel.Hsv(0,1)==(255,0,0) && ColorWheel.Hsv(120,1)==(0,255,0) && ColorWheel.Hsv(240,1)==(0,0,255), "Color wheel primary hues");
+            Check(ColorWheel.Hsv(0,0)==(255,255,255) && ColorWheel.Hsv(60,1)==(255,255,0), "Color wheel center and mixed hue");
+            Check(Runtime.ScaleTestColor((255,128,0),50)==(128,64,0) && Runtime.ScaleTestColor((255,255,255),0)==(0,0,0), "Color test respects brightness and off");
+            var previewTime = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+            int hueSelections = 0;
+            var lightPreview = new ManualLightPreview(() => previewTime, () => { hueSelections++; return 240; });
+            Check(lightPreview.StartBrightness(Activity.Idle) && lightPreview.IsBrightness && lightPreview.Color == (0,0,255), "Brightness click previews visible color even without a session");
+            var low = Runtime.ScaleTestColor(lightPreview.Color, 15);
+            var high = Runtime.ScaleTestColor(lightPreview.Color, 100);
+            Check(low == (0,0,38) && high == (0,0,255), "Brightness presets immediately scale the same preview color");
+            previewTime = previewTime.AddSeconds(2);
+            lightPreview.StartBrightness(Activity.Working);
+            Check(hueSelections == 1 && lightPreview.Color == (0,0,255), "Repeated brightness clicks retain preview hue");
+            previewTime = previewTime.AddSeconds(2);
+            Check(lightPreview.Update(Activity.Working), "Repeated click extends the preview from the last selection");
+            previewTime = previewTime.AddSeconds(1);
+            Check(!lightPreview.Update(Activity.Working) && !lightPreview.IsBrightness, "Brightness preview expires exactly three seconds after last click");
+            Check(!lightPreview.StartBrightness(Activity.NeedsInput) && !lightPreview.IsActive, "Brightness cannot override a pending question or permission");
+            lightPreview.StartBrightness(Activity.Working);
+            Check(!lightPreview.Update(Activity.NeedsInput), "New pending input immediately interrupts brightness preview");
+            lightPreview.StartColor(255,0,0);
+            Check(lightPreview.Update(Activity.NeedsInput) && !lightPreview.IsBrightness, "Explicit color-wheel test keeps its separate manual behavior");
+            lightPreview.StartBrightness(Activity.Idle);
+            Check(lightPreview.IsBrightness && lightPreview.Color == (0,0,255) && hueSelections == 3, "Brightness selection after a color test starts its own preview");
+            lightPreview.Finish();
+            Check(!lightPreview.IsActive && !lightPreview.IsBrightness, "Scheduled preview expiry restores normal output");
+            MacParityTests.Run(Check,root,prefs).GetAwaiter().GetResult();
             Check(Storage.Key().SequenceEqual(Storage.Key()), "Stable installation correlation key");
             Check(Integrations.Command("/Users/O'Brien/VibeCodingLight", "codex") == "'/Users/O'\"'\"'Brien/VibeCodingLight' --hook codex", "POSIX apostrophe and space quoting");
             foreach (string family in Integrations.Families) {
@@ -64,6 +95,7 @@ public static class SelfTest {
             Check(agChild.WaitForExit(3000) && agChild.ExitCode == 0 && agChild.StandardOutput.ReadToEnd() == "{}" + Environment.NewLine && agChild.StandardError.ReadToEnd() == "", "Antigravity returns neutral JSON on invalid event");
             var question = ProviderHooks.Read("antigravity", "PreToolUse", "{\"conversationId\":\"q\",\"stepIdx\":3,\"toolCall\":{\"name\":\"ask_question\",\"args\":{\"question\":\"PRIVATE\"}}}");
             Check(question?.EventName == "ProviderAsked" && question.ToolId == "step:3" && !JsonSerializer.Serialize(question).Contains("PRIVATE"), "Antigravity question metadata only");
+            MacParityTests.HookProcesses(Check,listener).GetAwaiter().GetResult();
             Console.WriteLine($"{checks} macOS service checks passed. Test data: {root}"); return 0;
         } catch (Exception e) { Console.Error.WriteLine("FAIL " + e); return 1; }
     }

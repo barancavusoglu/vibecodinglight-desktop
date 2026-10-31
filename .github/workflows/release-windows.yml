@@ -29,7 +29,7 @@ jobs:
       - name: Verify tag and build
         shell: pwsh
         run: |
-          [xml]$props = Get-Content windows/Directory.Build.props
+          [xml]$props = Get-Content Version.props
           $version = [string]$props.Project.PropertyGroup.Version
           if ($env:GITHUB_REF_NAME -ne "windows-v$version") { throw 'Release tag and source version do not match.' }
           dotnet restore windows/Tests/AiLight.Tests.csproj --locked-mode --configfile NuGet.Config

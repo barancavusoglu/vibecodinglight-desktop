@@ -27,7 +27,13 @@ final class BluetoothBridge: NSObject, CBCentralManagerDelegate, CBPeripheralDel
         central = CBCentralManager(delegate: self, queue: .main)
     }
     func scan() {
-        if central.state == .poweredOn && selected == nil {
+        if central.state == .poweredOn {
+            // A peripheral may still be connected to macOS after an app restart
+            // and therefore no longer advertise. It still needs our INFO check.
+            for peripheral in central.retrieveConnectedPeripherals(withServices: [serviceID]) {
+                discovered[peripheral.identifier] = peripheral
+                emit("found", peripheral.identifier.uuidString)
+            }
             central.scanForPeripherals(withServices: [serviceID], options: [CBCentralManagerScanOptionAllowDuplicatesKey: true])
         }
     }
@@ -53,7 +59,9 @@ final class BluetoothBridge: NSObject, CBCentralManagerDelegate, CBPeripheralDel
             guard central.state == .poweredOn, selected == nil,
                   let text = object["value"], let id = UUID(uuidString: text),
                   let peripheral = discovered[id] else { emit("error", "Bluetooth cihazı bulunamadı"); return }
-            central.stopScan(); selected = peripheral; peripheral.delegate = self
+            // Keep discovering other product-service devices while connected,
+            // so the selector can offer a second robot without dropping this one.
+            selected = peripheral; peripheral.delegate = self
             central.connect(peripheral, options: nil)
         case "disconnect":
             if let peripheral = selected { central.cancelPeripheralConnection(peripheral) }

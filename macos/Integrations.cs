@@ -19,19 +19,16 @@ public static class Integrations {
         using var reader = new StreamReader(typeof(Integrations).Assembly.GetManifestResourceStream("AiLight.OpenCodePlugin")!);
         return reader.ReadToEnd().Replace("__AI_LIGHT_EXECUTABLE__", JsonSerializer.Serialize(exe));
     }
-    public static bool Installed(Preferences p, string family) {
-        try {
-            string text = File.ReadAllText(ConfigPath(family));
-            if (family == "opencode") return text == Plugin(Storage.Exe);
-            if (HarnessCatalog.IsPreview(family)) return ProviderHooks.Installed(text, Command(Storage.Exe, family), family, false);
-            return HookConfig.IsInstalled(text, Command(Storage.Exe, family), family);
-        } catch { return false; }
-    }
+    public static bool Matches(string text, string family) => family == "opencode" ? text == Plugin(Storage.Exe)
+        : HarnessCatalog.IsPreview(family) ? ProviderHooks.Installed(text,Command(Storage.Exe,family),family,false)
+        : HookConfig.IsInstalled(text,Command(Storage.Exe,family),family);
+    public static bool Installed(Preferences p, string family) => ConnectionHealth.Check(family,true).Healthy;
     public static void Change(Preferences p, string family, bool install) {
         string path = ConfigPath(family);
-        Directory.CreateDirectory(Storage.Root);
+        Storage.PrivateDirectory(Storage.Root);
         using var installLock = new FileStream(Path.Combine(Storage.Root, "hooks-" + family + ".lock"), FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.None);
         if (File.Exists(path) && new FileInfo(path).LinkTarget is not null) throw new IOException("Sembolik bağlantı olan ayar dosyası korundu.");
+        if (File.Exists(path) && new FileInfo(path).Length > 2_000_000) throw new IOException("Hook dosyası fazla büyük; dosya korundu.");
         string? old = File.Exists(path) ? File.ReadAllText(path) : null;
         string next;
         var owned = p.OwnedCommands.GetValueOrDefault(family) ?? [];

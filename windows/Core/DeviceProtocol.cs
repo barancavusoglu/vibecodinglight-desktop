@@ -59,11 +59,17 @@ public interface IRobotLink : IDisposable {
     Task<string> RequestAsync(string command, CancellationToken stop);
 }
 public enum DeviceTransport { None, Usb, Bluetooth }
-public sealed record DeviceConnectionState(DeviceTransport Transport, string Detail) {
+public sealed record DeviceConnectionState(DeviceTransport Transport, string Detail, string Address = "", string DeviceId = "") {
     public bool Connected => Transport != DeviceTransport.None;
+    public string Summary => Transport switch {
+        DeviceTransport.Usb => "USB ile bağlı",
+        DeviceTransport.Bluetooth => "Bluetooth ile bağlı",
+        _ => "Robot aranıyor"
+    };
 }
 public interface IRobotDiscovery : IDisposable {
     void SetBluetoothEnabled(bool enabled) { }
+    bool BluetoothDiscoveryReady => true;
     IReadOnlyList<string> UsbCandidates();
     IReadOnlyList<string> BleCandidates();
     string BluetoothStatus { get; }
@@ -82,7 +88,7 @@ public sealed class RobotConnection(IRobotDiscovery discovery) : IDisposable {
     public bool Connected => link is not null;
     public bool IsUsb => link?.IsUsb == true;
     public DeviceConnectionState State => new(link is null ? DeviceTransport.None
-        : link.IsUsb ? DeviceTransport.Usb : DeviceTransport.Bluetooth, Status);
+        : link.IsUsb ? DeviceTransport.Usb : DeviceTransport.Bluetooth, Status, link?.Address ?? "", link is null ? "" : Id);
     private bool firmwareUpdateRequired;
     public long Generation { get; private set; }
     private sealed record VerifiedLink(IRobotLink Link, string Id);
@@ -112,8 +118,11 @@ public sealed class RobotConnection(IRobotDiscovery discovery) : IDisposable {
         DateTime now, CancellationToken stop) {
         if (disposed || stop.IsCancellationRequested) return;
         if (selection != chosen || selectedId != chosenId) {
-            await DisconnectAsync(); selection = chosen; selectedId = chosenId;
-            pinnedId = chosenId; nextScan = DateTime.MinValue;
+            // Remembering an already verified identity must not reconnect the robot.
+            if (selection != chosen || chosenId.Length == 0 || chosenId != pinnedId) {
+                await DisconnectAsync(); pinnedId = chosenId; nextScan = DateTime.MinValue;
+            }
+            selection = chosen; selectedId = chosenId;
         }
         try {
             if (now >= nextScan && link?.IsUsb != true) {
@@ -142,6 +151,9 @@ public sealed class RobotConnection(IRobotDiscovery discovery) : IDisposable {
                         ble = []; // An unverified manual USB choice must not control a different robot.
                     if (ble.Length > 1 && pinnedId.Length == 0) {
                         Status = "Birden fazla Bluetooth robotu var · cihaz seç"; return;
+                    }
+                    if (ble.Length > 0 && pinnedId.Length == 0 && selection.Length == 0 && !discovery.BluetoothDiscoveryReady) {
+                        Status = "Bluetooth robotları aranıyor"; return;
                     }
                     foreach (string address in ble) {
                         var candidate = await Verify(address, stop);
@@ -172,15 +184,21 @@ public sealed class RobotConnection(IRobotDiscovery discovery) : IDisposable {
         link = candidate.Link; Id = pinnedId = candidate.Id;
         lastCommand = ""; Generation++;
         discovery.SetBluetoothEnabled(!link.IsUsb);
-        Status = link.IsUsb ? link.Address + " · USB bağlı · Bluetooth kapalı"
-            : "Bluetooth bağlı · VibeCodingLight " + Id;
+        Status = link.IsUsb ? "Robot USB üzerinden bağlı"
+            : "Robot Bluetooth üzerinden bağlı";
     }
     private async Task DisconnectAsync() {
         var old = link; link = null; lastCommand = "";
         if (old is null) return;
         try { using var stop = new CancellationTokenSource(350); await old.RequestAsync("OFF", stop.Token); }
         catch { /* Firmware watchdog also bounds a lost connection. */ }
-        finally { old.Dispose(); }
+        finally {
+            // A native driver close must not stop discovery or leave the shell
+            // displaying the previous transport indefinitely after unplugging.
+            var close = Task.Run(() => { try { old.Dispose(); } catch { } });
+            try { await close.WaitAsync(TimeSpan.FromMilliseconds(350)); }
+            catch (TimeoutException) { }
+        }
     }
     public void Dispose() {
         if (disposed) return; disposed = true;
