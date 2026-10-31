@@ -6,7 +6,11 @@ cd "$root"
 [[ $# -eq 1 ]] || { echo 'Usage: bash scripts/package-macos.sh path/to/built-arm64.zip' >&2; exit 1; }
 source_archive="$1"
 [[ -f "$source_archive" ]] || { echo 'Built archive not found.' >&2; exit 1; }
-[[ -z "$(git status --porcelain --untracked-files=normal)" ]] || { echo 'Commit source changes before preparing a release.' >&2; exit 1; }
+if [[ -n "$(git status --porcelain --untracked-files=normal)" ]]; then
+  git status --short >&2
+  echo 'Commit source changes before preparing a release.' >&2
+  exit 1
+fi
 version="$(dotnet msbuild macos/AiLight.Mac.csproj -getProperty:Version -nologo)"
 [[ "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] || { echo 'Invalid source version.' >&2; exit 1; }
 commit="$(git rev-parse HEAD)"

@@ -14,6 +14,7 @@ mkdir -p "$bundle/Contents/MacOS"
 # Keep native libraries alongside the executable for signing without extraction.
 dotnet publish AiLight.Mac.csproj -c Release -r "osx-$arch" --self-contained true \
   -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=false \
+  -p:NuGetLockFilePath="obj/publish-$arch.lock.json" \
   -p:DebugType=embedded -p:CopyOutputSymbolsToPublishDirectory=false -o "$bundle/Contents/MacOS"
 swift_arch="$arch"
 [[ "$arch" != x64 ]] || swift_arch=x86_64
@@ -54,4 +55,8 @@ mkdir -p dist
 archive="$PWD/dist/VibeCodingLight-macos-$arch-$version-$(date +%Y%m%d%H%M%S).zip"
 /usr/bin/ditto -c -k --sequesterRsrc "$stage" "$archive"
 echo "Created: $archive"
-echo 'Developer ID signing + notarization + real Mac hardware checks are required before public release.'
+if [[ "$identity" == - ]]; then
+  echo 'Ad-hoc signed build; macOS may require the user to approve opening it.'
+else
+  echo 'Developer ID signed build; notarization is a separate distribution step.'
+fi

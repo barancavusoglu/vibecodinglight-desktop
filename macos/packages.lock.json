@@ -287,7 +287,7 @@
       "VibeCodingLight.Desktop": {
         "type": "Project",
         "dependencies": {
-          "AiLight.Core": "[0.1.52, )",
+          "AiLight.Core": "[0.1.53, )",
           "Avalonia.Desktop": "[11.3.9, )",
           "Avalonia.Themes.Fluent": "[11.3.9, )",
           "Tmds.DBus.Protocol": "[0.21.3, )"
