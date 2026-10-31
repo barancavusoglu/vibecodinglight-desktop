@@ -33,7 +33,7 @@ public static class Storage {
         p.Port ??= ""; p.DeviceId ??= ""; p.OwnedCommands ??= [];
         p.IdleAutoOffMinutes = SettingSteps.NearestIdleMinutes(p.IdleAutoOffMinutes);
         p.StartupRegistration ??= "";
-        p.Theme = MacThemes.Normalize(p.Theme);
+        p.Theme = DesktopThemes.Normalize(p.Theme);
         return p;
     }
     public static void Save(string name, object value) { PrivateDirectory(Root); Atomic(Path.Combine(Root, name), JsonSerializer.Serialize(value)); }

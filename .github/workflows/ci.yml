@@ -95,9 +95,16 @@ jobs:
         run: bash macos/check-ui.sh
       - name: OpenCode Unix socket and process-exit integration
         run: node windows/Tests/opencode.test.mjs "$PWD/macos/bin/Release/net10.0/VibeCodingLight" mac
+      - name: Build Apple Silicon development bundle
+        run: |
+          bash macos/build.sh arm64
+          shasum -a 256 macos/dist/VibeCodingLight-macos-arm64-*.zip > macos/dist/macos-development.sha256
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
-          name: macos-source-previews
-          path: macos/dist/ci-*.png
+          name: macos-development-build
+          path: |
+            macos/dist/ci-*.png
+            macos/dist/VibeCodingLight-macos-arm64-*.zip
+            macos/dist/macos-development.sha256
           retention-days: 14
           if-no-files-found: error

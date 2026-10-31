@@ -14,7 +14,7 @@ public static class SelfTest {
             Environment.SetEnvironmentVariable("COPILOT_HOME", Path.Combine(root, "copilot"));
             var prefs = new Preferences { Brightness = 37, Theme = "light" }; Storage.Save("settings.json", prefs);
             Check(Storage.Load().Brightness == 30 && Storage.Load().Theme == "light", "macOS preference migration matches Windows brightness steps");
-            foreach (string theme in MacThemes.All) {
+            foreach (string theme in DesktopThemes.All) {
                 prefs.Theme = theme; Storage.Save("settings.json", prefs);
                 Check(Storage.Load().Theme == theme, "Theme persists: " + theme);
             }
