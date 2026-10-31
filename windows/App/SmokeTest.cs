@@ -90,13 +90,15 @@ public static class SmokeTest {
             if (!protectedCollision || File.ReadAllText(OpenCodeIntegration.PluginPath) != "// user-owned collision") throw new Exception("OpenCode collision not preserved");
             if (Storage.Load().Brightness != 30) throw new Exception("Brightness persistence failed");
             if (!Storage.Load().IdleAutoOffEnabled || Storage.Load().IdleAutoOffMinutes != 30) throw new Exception("Idle auto-off persistence failed");
-            if (Storage.Load().Theme != "sage") throw new Exception("Default theme failed");
+            if (Storage.Load().Theme != DesktopThemes.Default) throw new Exception("Default theme failed");
             foreach (var theme in Themes.All.Concat(new[] { "ocean", "lavender" })) {
                 Storage.Save("settings.json", new Preferences { Brightness = 37, Theme = theme });
                 if (Storage.Load().Theme != Themes.Normalize(theme) || Storage.Load().Brightness != 30) throw new Exception("Theme persistence failed");
             }
             Storage.Save("settings.json", new Preferences { Theme = "invalid" });
-            if (Storage.Load().Theme != "sage") throw new Exception("Invalid theme fallback failed");
+            if (Storage.Load().Theme != DesktopThemes.Default) throw new Exception("Invalid theme fallback failed");
+            Storage.Save("settings.json", new Preferences { Theme = "sage" });
+            if (Storage.Load().Theme != "light") throw new Exception("Legacy Windows light theme migration failed");
             string approvalRoot = Path.Combine(testRoot, "approval-sessions");
             Directory.CreateDirectory(approvalRoot);
             string approvalRollout = Path.Combine(approvalRoot, "review.jsonl");

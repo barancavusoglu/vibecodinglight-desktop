@@ -11,8 +11,8 @@ try {
     $smokeReport = Join-Path $PSScriptRoot 'smoke-result.txt'
     $smoke = Start-Process -FilePath (Join-Path $PSScriptRoot 'dist/portable/AI Light.exe') -ArgumentList "--integration-smoke `"$smokeReport`"" -WindowStyle Hidden -PassThru
     if (!$smoke.WaitForExit(60000)) { throw 'Hook kabuk testi zaman aşımına uğradı.' }
-    if ($smoke.ExitCode -ne 0) { throw "Hook kabuk testi başarısız: $smokeReport" }
     Get-Content -LiteralPath $smokeReport
+    if ($smoke.ExitCode -ne 0) { throw "Hook kabuk testi başarısız: $smokeReport" }
     node Tests/opencode.test.mjs (Join-Path $PSScriptRoot 'dist/portable/AI Light.exe') ([System.Security.Principal.WindowsIdentity]::GetCurrent().User.Value)
     if ($LASTEXITCODE -ne 0) { throw 'OpenCode eklenti aktarım testi başarısız.' }
     Copy-Item -LiteralPath 'dist/portable/AI Light.exe' -Destination 'dist/VibeCodingLight-Setup.exe' -Force
