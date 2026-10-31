@@ -30,7 +30,7 @@ app="$stage/VibeCodingLight.app"
 [[ "$(/usr/libexec/PlistBuddy -c 'Print :VCLSourceRevision' "$app/Contents/Info.plist")" == "$commit" ]] || { echo 'Bundle source commit does not match this checkout.' >&2; exit 1; }
 /usr/bin/codesign --verify --deep --strict "$app"
 for binary in VibeCodingLight VibeCodingLight.Bluetooth; do
-  /usr/bin/lipo -verify_arch arm64 "$app/Contents/MacOS/$binary"
+  /usr/bin/lipo "$app/Contents/MacOS/$binary" -verify_arch arm64
 done
 [[ "$("$app/Contents/MacOS/VibeCodingLight" --version)" == "$version+$commit" ]] || { echo 'Application version/source does not match this checkout.' >&2; exit 1; }
 for notice in LICENSE NOTICE THIRD_PARTY_NOTICES.md; do
