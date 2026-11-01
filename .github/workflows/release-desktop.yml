@@ -150,7 +150,9 @@ jobs:
               echo "Release $platform-v$VERSION already exists; it was preserved." >&2
               exit 1
             fi
-            tag_sha="$(gh api "repos/$GH_REPO/commits/$platform-v$VERSION" --jq .sha 2>/dev/null || true)"
+            if ! tag_sha="$(gh api "repos/$GH_REPO/commits/$platform-v$VERSION" --jq .sha 2>/dev/null)"; then
+              tag_sha=''
+            fi
             if [[ -n "$tag_sha" && "$tag_sha" != "$GITHUB_SHA" ]]; then
               echo 'An existing tag points to a different source commit; it was preserved.' >&2
               exit 1
