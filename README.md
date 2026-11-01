@@ -8,6 +8,7 @@
 
 <p align="center">
   <a href="https://www.vibecodinglight.com/#setup"><img src="assets/readme/download-windows.svg" alt="Download for Windows" width="256" height="48" /></a>
+  <br /><a href="https://github.com/barancavusoglu/vibecodinglight-desktop/releases?q=macos-v">Download for macOS (Apple silicon)</a>
 </p>
 
 <p align="center">
@@ -30,7 +31,7 @@ Open **Connections** in the app, enable the tools you use, and start a new sessi
 
 Prefer a manual download? Get the Windows ZIP from [Releases](https://github.com/barancavusoglu/vibecodinglight-desktop/releases), extract it, and run `VibeCodingLight-Setup.exe`.
 
-**Windows x64 beta is available.** macOS is a source preview; a downloadable Mac app is not available yet.
+**Windows x64 and Apple silicon macOS builds are available.** macOS requires version 14 or later. For manual Mac installation, extract its ZIP and run `Install VibeCodingLight.command` beside `VibeCodingLight.app`.
 
 Windows and macOS share the same interface, themes and application logic. Device access and installation use native platform adapters.
 
@@ -61,6 +62,6 @@ Connect over **USB for power and data**, or use **Bluetooth with external power*
 
 ---
 
-Session tracking runs locally. The Windows app can contact the official website to check for updates. Source is public for inspection; this project is owner-maintained, and external contributions and pull requests are disabled.
+Session tracking runs locally. The app can contact the official website or GitHub to check for updates. Source is public for inspection; this project is owner-maintained, and external contributions and pull requests are disabled.
 
 Licensed under [Apache-2.0](LICENSE). See [NOTICE](NOTICE), [third-party notices](THIRD_PARTY_NOTICES.md), and [security reporting](SECURITY.md).

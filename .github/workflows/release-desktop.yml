@@ -105,6 +105,7 @@ jobs:
           node-version: 24
       - name: Build and validate Apple Silicon package
         run: |
+          node --test macos/Tests/online-install.test.mjs
           bash macos/build.sh arm64
           bash macos/check-ui.sh
           dotnet build tests/macos-serial/SerialSmoke.csproj -c Release
@@ -113,6 +114,7 @@ jobs:
           archives=(macos/dist/VibeCodingLight-macos-arm64-*.zip)
           [[ ${#archives[@]} -eq 1 ]] || { echo 'Expected exactly one fresh Mac build.' >&2; exit 1; }
           bash scripts/package-macos.sh "${archives[0]}"
+          VCL_MAC_REAL_ARCHIVE="${archives[0]}" VCL_MAC_REAL_VERSION="$(dotnet msbuild macos/AiLight.Mac.csproj -getProperty:Version -nologo)" VCL_MAC_REAL_COMMIT="$GITHUB_SHA" node --test --test-name-pattern='real Mac archive' macos/Tests/online-install.test.mjs
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: macos-release-candidate

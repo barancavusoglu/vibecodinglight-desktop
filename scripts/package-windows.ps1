@@ -15,7 +15,7 @@ $version = [string]$props.Project.PropertyGroup.Version
 $commit = (& git -C $root rev-parse HEAD).Trim()
 if ($LASTEXITCODE -ne 0) { throw 'Cannot identify the source commit.' }
 $changes = & git -C $root status --porcelain --untracked-files=normal
-if ($LASTEXITCODE -ne 0 -or $changes) { throw 'Commit source changes before preparing a release.' }
+if ($LASTEXITCODE -ne 0 -or $changes) { $changes | Write-Output; throw 'Commit source changes before preparing a release.' }
 $installer = Get-Item -LiteralPath $InstallerPath
 if ($installer.VersionInfo.ProductVersion -ne "$version+$commit") {
     throw 'Installer version/source commit does not match this checkout. Rebuild from the current commit.'

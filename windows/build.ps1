@@ -6,7 +6,7 @@ Push-Location $PSScriptRoot
 try {
     dotnet run --project Tests/AiLight.Tests.csproj -c Release @restoreArgs
     if ($LASTEXITCODE -ne 0) { throw 'Durum ve hook testleri başarısız.' }
-    dotnet publish Desktop/AiLight.Desktop.Windows.csproj -c Release -r win-x64 --self-contained true -o dist/portable @restoreArgs
+    dotnet publish Desktop/AiLight.Desktop.Windows.csproj -c Release -r win-x64 --self-contained true -p:NuGetLockFilePath=obj/publish-win-x64.lock.json -o dist/portable @restoreArgs
     if ($LASTEXITCODE -ne 0) { throw 'Windows yayını derlenemedi.' }
     $versionReport = Join-Path $PSScriptRoot 'dist/version-result.txt'
     $versionCheck = Start-Process -FilePath (Join-Path $PSScriptRoot 'dist/portable/AI Light.exe') -ArgumentList '--version' -WindowStyle Hidden -PassThru -RedirectStandardOutput $versionReport
