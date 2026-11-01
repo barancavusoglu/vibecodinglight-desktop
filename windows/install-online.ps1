@@ -66,7 +66,19 @@ param([switch]$DownloadOnly)
                 [IO.Path]::GetFileName($resolvedStage) -notmatch '^VibeCodingLight-install-[0-9a-f]{32}$') {
                 throw 'Unexpected temporary path; cleanup stopped.'
             }
-            Remove-Item -LiteralPath $resolvedStage -Recurse -Force
+            # Windows can briefly retain an image handle after the installer exits.
+            for ($attempt = 0; $attempt -lt 20; $attempt++) {
+                try {
+                    Remove-Item -LiteralPath $resolvedStage -Recurse -Force -ErrorAction Stop
+                    break
+                } catch {
+                    if ($attempt -eq 19) {
+                        Write-Warning "Temporary installation files could not be removed: $resolvedStage"
+                    } else {
+                        Start-Sleep -Milliseconds 250
+                    }
+                }
+            }
         }
     }
 } -OnlyDownload $DownloadOnly.IsPresent

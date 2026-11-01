@@ -86,6 +86,37 @@ try {
     Expect-Failure { Invoke-Expression ([IO.File]::ReadAllText($installerScript)) } 'VERIFIED_INSTALL_REQUESTED'
     if ($script:launches -ne 1) { throw 'One-step expression did not request the verified installer exactly once.' }
     Write-Output 'PASS: Invoke-Expression reaches the verified installer; no real process was started.'
+
+    $script:cleanupFailures = 2
+    $script:cleanupAttempts = 0
+    $script:cleanupPath = $null
+    function Remove-Item {
+        [CmdletBinding()]
+        param([string]$LiteralPath, [switch]$Recurse, [switch]$Force)
+        if ([IO.Path]::GetFileName($LiteralPath) -match '^VibeCodingLight-install-[0-9a-f]{32}$') {
+            $script:cleanupAttempts++
+            $script:cleanupPath = $LiteralPath
+            if ($script:cleanupFailures -gt 0) {
+                $script:cleanupFailures--
+                throw [IO.IOException]::new('Simulated Windows image lock')
+            }
+        }
+        Microsoft.PowerShell.Management\Remove-Item @PSBoundParameters
+    }
+    $script:release.archiveSha256 = '0' * 64
+    Expect-Failure { & $script:installerBlock -DownloadOnly } 'Archive checksum mismatch.'
+    if ($script:cleanupAttempts -ne 3 -or (Test-Path -LiteralPath $script:cleanupPath)) { throw 'Transient lock cleanup failed.' }
+    Write-Output 'PASS: transient Windows image locks are retried without hiding the original failure.'
+
+    $script:cleanupFailures = 100
+    $script:cleanupAttempts = 0
+    $script:cleanupWarnings = @()
+    Expect-Failure { & $script:installerBlock -DownloadOnly -WarningVariable +cleanupWarnings -WarningAction SilentlyContinue } 'Archive checksum mismatch.'
+    if ($script:cleanupAttempts -ne 20 -or -not (Test-Path -LiteralPath $script:cleanupPath)) { throw 'Persistent lock cleanup was not bounded.' }
+    $retained += $script:cleanupPath
+    $script:cleanupFailures = 0
+    $script:release.archiveSha256 = $originalArchiveHash
+    Write-Output 'PASS: persistent cleanup locks preserve the installation result and leave only the validated temporary directory.'
 } finally {
     foreach ($directory in $retained) { Remove-TestDirectory $directory 'VibeCodingLight-install-' }
     if (Test-Path -LiteralPath $fixture) { Remove-TestDirectory $fixture 'VibeCodingLight-online-tests-' }
