@@ -22,6 +22,7 @@ public sealed class MainWindow : Window
     private readonly Grid sessionArea = new();
     private readonly StackPanel empty = new() { Spacing = 10, VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(24) };
     private readonly Dictionary<string, TextBlock> statuses = [];
+    private readonly Dictionary<string, Button> connectionGuides = [];
     private readonly Dictionary<string, StatusCard> connectionCards = [];
     private readonly Dictionary<string, Button> themeButtons = [];
     private readonly List<(Button Button, Border Bar)> brightnessButtons = [];
@@ -111,6 +112,14 @@ public sealed class MainWindow : Window
             var buttons = new WrapPanel { Orientation = Orientation.Horizontal };
             var enable = Action("Etkinleştir / Onar", () => runtime.Change(family, true)); enable.Margin = new Thickness(0, 0, 8, 0); buttons.Children.Add(enable);
             var remove = Action("Kaldır", () => runtime.Change(family, false)); remove.Classes.Add("quiet"); buttons.Children.Add(remove); content.Children.Add(buttons);
+            string guideTitle = family == "codex" ? "Hook nasıl onaylanır?" : "Bağlantı rehberi";
+            var guideUrl = new Uri("https://www.vibecodinglight.com/docs/agents#" + family);
+            var guide = Action(guideTitle, () => OpenConnectionGuide(guideUrl));
+            guide.Classes.Add("quiet");
+            guide.IsVisible = false;
+            AutomationProperties.SetName(guide, Label(family) + " · " + guideTitle);
+            connectionGuides[family] = guide;
+            content.Children.Add(guide);
             content.Children.Add(Hint(family switch
             {
                 "codex" => "Codex'te hook güven onayını tamamla. Gerekirse Codex uygulamasını veya CLI oturumunu tamamen kapatıp yeniden aç; ardından yeni görev başlat.",
@@ -122,6 +131,12 @@ public sealed class MainWindow : Window
             var card = Card(content); card.Margin = new Thickness(8, 8, 10, 14); connectionCards[family] = card; cards.Children.Add(card);
         }
         panel.Children.Add(cards); return Scroll(panel);
+    }
+    private void OpenConnectionGuide(Uri url)
+    {
+        if (Program.Preview) return;
+        try { System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(url.AbsoluteUri) { UseShellExecute = true }); }
+        catch (Exception error) { runtime.Notice = "Bağlantı rehberi açılamadı: " + error.Message; Refresh(); }
     }
     private Control SettingsTab()
     {
@@ -221,6 +236,7 @@ public sealed class MainWindow : Window
             string state = preview ? Program.Arguments.Contains("--showcase") ? family switch { "codex" => "healthy", "claude" => "pending", "opencode" => "unhealthy", _ => "disabled" } : "disabled" : runtime.ConnectionAppearance(family);
             label.Text = preview ? state switch { "healthy" => "Gerçek oturum olayı alındı", "pending" => "Kurulu · ilk olay bekleniyor", "unhealthy" => "Onarım gerekiyor", _ => "Etkin değil" } : runtime.ConnectionStatus(family);
             ApplyState(connectionCards[family], state);
+            connectionGuides[family].IsVisible = state == "pending";
         }
         verifyButton.IsEnabled = !runtime.CheckingConnections && !verifying; verifyProgress.IsVisible = runtime.CheckingConnections || verifying;
         if (!verifying && string.IsNullOrEmpty(healthResult.Text)) healthResult.Text = "Bağlantıları ve kayıtları kontrol edebilirsin.";

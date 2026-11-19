@@ -33,7 +33,7 @@ public sealed class Runtime(bool preview) : IDisposable
     public string ConnectionAppearance(string family) => Connections.TryGetValue(family, out var check)
         ? !check.Enabled ? "disabled" : !check.Healthy ? "unhealthy" : observed.Has(family) ? "healthy" : "pending"
         : Preferences.OwnedCommands.GetValueOrDefault(family)?.Count > 0 ? "pending" : "disabled";
-    public string ConnectionStatus(string family) => !Connections.TryGetValue(family, out var check) ? "Kontrol bekleniyor" : !check.Enabled ? "Etkin değil" : !check.Healthy ? check.Detail : check.Detail + (observed.Has(family) ? " · gerçek olay alındı" : " · gerçek olay bekleniyor. Güven onayını kontrol et; yeni oturumda mesaj gönder.");
+    public string ConnectionStatus(string family) => !Connections.TryGetValue(family, out var check) ? "Kontrol bekleniyor" : !check.Enabled ? "Etkin değil" : !check.Healthy ? check.Detail : check.Detail + (observed.Has(family) ? " · gerçek olay alındı" : " · gerçek olay bekleniyor. Yeni bir yerel oturumda mesaj gönder.");
     private readonly ConnectionObservations observed = new();
     private readonly PermissionLightGate permissionGate = new();
     private readonly ManualLightPreview lightPreview = new();
